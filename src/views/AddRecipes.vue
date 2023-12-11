@@ -106,7 +106,7 @@
           <div class="">
             <label class="">Fat</label>
             <div class="control">
-              <input class="input" type="number" v-model="recipe.nutritionFacts.fat">
+              <input class="input" type="number" v-model="recipe.nutritionFacts.fats">
             </div>
           </div>
         </div>
@@ -120,16 +120,7 @@
 
 <script lang="ts">
   import axios from 'axios';
-
-  class Ingredient {
-    name: String = '';
-    quantity: number = 0;
-    measurement: String = '';
-  }
-
-  class Instruction {
-    step: String = '';
-  }
+  import { Recipe, Ingredient, Instruction, NutritionFacts } from './recipeModel';
 
   export default {
    data() {
@@ -169,7 +160,7 @@
             calories: 300,
             protein: 25,
             carbs: 254,
-            fat: 5,
+            fats: 5,
           }
         } 
       }
@@ -192,18 +183,22 @@
       },
 
       submit() {
+        let recipeClass = new Recipe
+        recipeClass.id = undefined
+        recipeClass.name = this.recipe.name
+        recipeClass.description = this.recipe.description
+        recipeClass.servings = this.recipe.servings
+        recipeClass.tags = this.recipe_tags.split(",")
+        recipeClass.ingredients = this.recipe.ingredients
+        recipeClass.instructions = this.recipe.instructions
+        recipeClass.nutritionFacts = this.recipe.nutritionFacts
 
-        this.recipe.tags = this.recipe_tags.split(",");
-
-        this.getPosts();
+        this.postRecipe(recipeClass);
       },
       
-      async getPosts() {
-        console.log("Before Stringify: " + this.recipe);
-        console.log("After Stringify: " + JSON.stringify(this.recipe));
-
+      async postRecipe(recipe: Recipe) {
         axios.post(
-          'http://localhost:8080/api/recipes', this.recipe,
+          'http://localhost:8080/api/recipes', recipe,
           {
             headers: {
               'Content-Type': 'application/json',
