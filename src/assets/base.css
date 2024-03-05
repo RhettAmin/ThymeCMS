@@ -4,72 +4,21 @@
 @tailwind utilities;
 
 :root {
-  --vt-c-white: #ffffff;
-  --vt-c-white-soft: #f8f8f8;
-  --vt-c-white-mute: #f2f2f2;
+  --text-white: #ffffff;
 
-  --vt-c-black: #924c4c;
-  --vt-c-black-soft: #222222;
-  --vt-c-black-mute: #282828;
+  --text-black: #000000;
+  --text-black-soft: hsl(0, 0%, 50%);
 
-  --vt-c-thymePrimary: hsl(130, 60%, 34%);
-  --vt-c-thymeSecondary: hwb(130 26% 44%);
-  --vt-c-thymeTertiary: hwb(78 26% 44% / 0.719);
-
-  --vt-c-divider-light-1: rgba(82, 46, 46, 0.29);
-  --vt-c-divider-light-2: rgba(60, 60, 60, 0.12);
-  --vt-c-divider-dark-1: rgba(84, 84, 84, 0.65);
-  --vt-c-divider-dark-2: rgba(84, 84, 84, 0.48);
-
-  --vt-c-text-light-1: var(--vt-c-indigo);
-  --vt-c-text-light-2: rgba(60, 60, 60, 0.66);
-  --vt-c-text-dark-1: var(--vt-c-white);
-  --vt-c-text-dark-2: rgba(235, 235, 235, 0.64);
-
-  --vt-c-nav-highlight: hsla(160, 100%, 37%, 1);
+  --thymeNav: hsl(119, 54%, 53%);
+  --thymeBackdrop: hsl(126, 40%, 95%);
+  --nav-active-highlight: hsl(0, 55%, 40%);
+  --nav-highlight: hsl(0, 40%, 30%);
 }
 
-/* semantic color variables for this project */
-:root {
-  --color-background: var(--vt-c-white);
-  --color-background-soft: var(--vt-c-white-soft);
-  --color-background-mute: var(--vt-c-white-mute);
-
-  --color-border: var(--vt-c-divider-light-2);
-  --color-border-hover: var(--vt-c-divider-light-1);
-
-  --color-heading: var(--vt-c-text-light-1);
-  --color-text: var(--vt-c-text-dark-2);
-
-  --section-gap: 160px;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-background: var(--vt-c-black);
-    --color-background-soft: var(--vt-c-black-soft);
-    --color-background-mute: var(--vt-c-black-mute);
-
-    --color-border: var(--vt-c-divider-dark-2);
-    --color-border-hover: var(--vt-c-divider-dark-1);
-
-    --color-heading: var(--vt-c-text-dark-1);
-    --color-text: var(--vt-c-text-dark-2);
-  }
-}
-
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-  margin: 0;
-  font-weight: normal;
-}
 
 body {
-  min-height: 100vh;
-  color: var(--color-text);
-  background: var(--vt-c-thymePrimary);
+  color: var(--text-black);
+  background: var(--thymeBackdrop);
   transition:
     color 0.5s,
     background-color 0.5s;

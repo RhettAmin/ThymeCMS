@@ -1,34 +1,29 @@
 class Recipe {
-    id?: String;
-    name: String;
-    description: String;
-    servings: Number;
-    tags: String[];
-    image: String;
-    ingredients: Ingredient[];
-    instructions: Instruction[];
-    nutritionFacts: NutritionFacts;
-
-    constructor() {
-        this.id = "";
-        this.name = "";
-        this.description = "";
-        this.servings = 0;
-        this.tags = [];
-        this.image = "";
-        this.ingredients = [];
-        this.instructions = [];
-        this.nutritionFacts = new NutritionFacts;
-    }
+    id?: string = "";
+    name: string = "";
+    description: string = "";
+    servings: Number = 0;
+    tags: string[] = [];
+    image: string = "";
+    ingredientSections: IngredientSection[] = [];
+    instructionSection: InstructionSection[] = [];
+    nutritionFacts: NutritionFacts = new NutritionFacts;
 }
+
+class IngredientSection {
+    sectionName: string = "";
+    ingredients: Ingredient[] = [];
+}
+
 class Ingredient {
-    name: String = "";
+    name: string = "";
     quantity: number = 0;
-    measurement: String = "";
+    measurement: string = "";
 }
 
-class Instruction {
-    step: String = "";
+class InstructionSection {
+    sectionName: string = "";
+    steps: string[] = [];
 }
 
 class NutritionFacts {
@@ -36,13 +31,6 @@ class NutritionFacts {
     protein: Number = 0;
     carbs: Number = 0;
     fats: Number = 0;
-
-    constructor() {
-        this.calories = 0;
-        this.protein = 0;
-        this.carbs = 0;
-        this.fats = 0;
-    }
 }
 
-export { Recipe, Ingredient, Instruction, NutritionFacts }
+export { Recipe, IngredientSection, Ingredient, InstructionSection, NutritionFacts }

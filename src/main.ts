@@ -11,8 +11,13 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { fas } from "@fortawesome/free-solid-svg-icons"
 library.add(fas)
 
+// Toast
+// import Toast, { PluginOptions } from "vue-toastification";
+// import "vue-toastification/dist/index.css";
+
 const app = createApp(App).component('font-awesome-icon', FontAwesomeIcon)
 
 app.use(router)
+//app.use(Toast, options)
 
 app.mount('#app')

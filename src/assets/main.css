@@ -15,12 +15,6 @@ a,
   transition: 0.4s;
 }
 
-@media (hover: hover) {
-  a:hover {
-    background-color: hsla(34, 100%, 37%, 0.616)
-  }
-}
-
 body {
   display:flex;
 }
