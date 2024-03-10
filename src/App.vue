@@ -3,19 +3,17 @@
 </script>
 
 <template>
-  <div class="flex h-max w-screen">
-    <header class="lg:w-[10%] md:w-[20%]">
-      <div class="flex flex-col text-center">
-        <h1 class="pt-5 pb-5 text-4xl">Thyme CMS</h1>
+  <div class="flex h-screen w-screen">
+    <header class="flex flex-col text-center">
+        <h1 class="py-5 text-4xl">Thyme CMS</h1>
     
-        <nav class="flex flex-col">
+        <nav class="h-fit flex flex-col">
           <RouterLink to="/" class="route-option ">Add Recipe</RouterLink>
           <RouterLink to="/view" class="route-option">View Recipes</RouterLink>
         </nav>
-      </div>
     </header>
 
-    <RouterView class="lg:w-[90%] p-10 md:w-[85vw]" />
+    <RouterView class="w-full py-10 overflow-y-scroll" />
   </div>
 </template>
 

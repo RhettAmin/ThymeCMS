@@ -1,6 +1,6 @@
 <template>
   <div class="main flex flex-col place-items-center">
-    <h1 class=" text-3xl pb-10 text-center">Add Recipe to Book</h1>
+    <h1 class="text-3xl pb-5 text-center">Add Recipe to Book</h1>
 
     <form class="" @submit.prevent>
 
@@ -182,13 +182,18 @@
 <script lang="ts">
   
   import { Recipe, IngredientSection, Ingredient, InstructionSection } from './recipeModel';
-  import { uploadBytes , ref, type StorageReference } from 'firebase/storage'
+  import { uploadBytesResumable, getDownloadURL, ref, type StorageReference } from 'firebase/storage'
   import { thymeStorage } from '../config/firebase'
-  
+  import { useToast } from "vue-toastification";  
   import axios from 'axios';
+  import { Md5 } from 'ts-md5';
 
   export default {
-   data() {
+    setup() {
+      
+    },
+
+    data() {
       return {
         posts:null,
         mainImageUrl: '',
@@ -224,7 +229,8 @@
             carbs: 0,
             fats: 0,
           }
-        } 
+        },
+        toast: useToast()
       }
     },
 
@@ -277,24 +283,78 @@
         instructionSection.steps.splice(index, 1);
       },
 
+      // ====================  AXIOS Calls  =====================================
+      checkIfIdExists() {
+        // Generate hashed ID from Recipe Name
+        let hashedId = Md5.hashStr(this.recipe.name)
+        console.log("Hashed id: " + hashedId)
+
+        axios.get('http://localhost:8080/api/recipes', {
+          params: {
+            id: hashedId
+          }
+        })
+        .then(response => {
+          console.log("ID Exists")
+          this.toast.error("Recipe with that name exists already")
+        })
+        .catch(error => {
+          console.log(error);
+          console.log("Recipe doesn't exist. Creating new one...")
+          this.recipe.id = hashedId
+          this.uploadPicture()
+        });  
+      },
+
       uploadPicture() {
         const data = this.mainImageFileRef
         if (data) {
-          uploadBytes(this.firebaseStorageRef, data).then((snapshot) => {
-            console.log('uploaded Image file!')
-            this.recipe.image = snapshot.ref.toString()
-          })
+
+          const uploadTask = uploadBytesResumable(this.firebaseStorageRef, data);
+          this.toast.info("Image upload Started")
+          // Register three observers:
+          // 1. 'state_changed' observer, called any time the state changes
+          // 2. Error observer, called on failure
+          // 3. Completion observer, called on successful completion
+          uploadTask.on('state_changed', 
+            (snapshot) => {
+              // Observe state change events such as progress, pause, and resume
+              // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
+              const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+              console.log('Upload is ' + progress + '% done');
+              switch (snapshot.state) {
+                case 'paused':
+                  console.log('Upload is paused');
+                  break;
+                case 'running':
+                  console.log('Upload is running');
+                  break;
+              }
+            }, 
+            (error) => {
+              // Handle unsuccessful uploads
+              console.error(error)
+            }, 
+            () => {
+              // Handle successful uploads on complete
+              // For instance, get the download URL: https://firebasestorage.googleapis.com/...
+              getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+                console.log('File available at', downloadURL);
+                this.toast.info("Image upload Done!")
+                this.recipe.image = downloadURL
+              })
+              .then(() =>
+                this.postRecipe(this.recipe)
+              );
+            })
         }
       },
-
-      submit() {
-        // Upload Image to Firebase and grab the storage string to put into DB
-        console.log(this.recipe);
-        this.uploadPicture()
-        this.postRecipe(this.recipe);
-      },
       
-      async postRecipe(recipe: Recipe) {
+      postRecipe(recipe: Recipe) {
+
+        let hashedId = Md5.hashStr(this.recipe.name)
+        console.log("Hashed id: " + hashedId)
+        
         axios.post(
           'http://localhost:8080/api/recipes', recipe,
           {
@@ -302,12 +362,22 @@
               'Content-Type': 'application/json',
             }
         })
-        .then(response => console.log(response))
+        .then(response => {
+          console.log(response)
+          this.toast.success("Recipe Uploaded!")
+        })
         .catch(function (error) {
           // your action on error success
             console.log(error);
         });
-      }
+      },
+
+      submit() {
+        // Upload Image to Firebase and grab the storage string to put into DB
+        console.log("Recipe: ");
+        console.log(this.recipe)
+        this.checkIfIdExists();        
+      },
     }
   }
 

@@ -1,11 +1,11 @@
 class Recipe {
-    id?: string = "";
+    id: string = "";
     name: string = "";
     description: string = "";
     servings: Number = 0;
     tags: string[] = [];
     image: string = "";
-    ingredientSections: IngredientSection[] = [];
+    ingredientSection: IngredientSection[] = [];
     instructionSection: InstructionSection[] = [];
     nutritionFacts: NutritionFacts = new NutritionFacts;
 }
