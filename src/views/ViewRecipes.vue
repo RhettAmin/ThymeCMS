@@ -51,10 +51,7 @@
           </td>
           <td class="border-2 px-4 py-2">
             <div>
-              <p>Calories: {{ recipe.nutritionFacts.calories }}</p>
-              <p>Protein: {{ recipe.nutritionFacts.protein }}</p>
-              <p>Carbs: {{ recipe.nutritionFacts.carbs }}</p>
-              <p>Fat: {{ recipe.nutritionFacts.fats }}</p>
+              <p>NutritionFacts HERE</p>
             </div>
           </td>
           <td class="border-2 text-center justify-center">
@@ -69,7 +66,7 @@
 
 <script lang="ts">
   import axios from 'axios';
-  import {Recipe} from './recipeModel';
+  import {Recipe} from '../models/recipeModel';
 
   export default {
     data() {
@@ -80,7 +77,7 @@
 
     methods: {
       deleteRecipe(idx: string) {
-        axios.delete('http://localhost:8080/api/recipes', {
+        axios.delete('http://localhost:9292/recipes', {
           params: {
             id: idx
           }
@@ -94,7 +91,7 @@
       },
 
       getRecipes() {
-        axios.get('http://localhost:8080/api/recipes', {
+        axios.get('http://localhost:9292/recipes', {
           params: {
             id: '',
             name:''

@@ -11,10 +11,11 @@
 
   --thymeNav: hsl(119, 54%, 53%);
   --thymeBackdrop: hsl(126, 40%, 95%);
+  --thymeProgress: hsl(119, 54%, 53%);
+  --thymeProgressBackground: hsl(119, 59%, 83%);
   --nav-active-highlight: hsl(0, 55%, 40%);
   --nav-highlight: hsl(0, 40%, 30%);
 }
-
 
 body {
   color: var(--text-black);

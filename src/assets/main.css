@@ -3,19 +3,7 @@
 @tailwind components;
 @tailwind utilities;
 
-#app {
-  max-width: 2000px;
-  font-weight: normal;
-}
 
-a,
-.green {
-  text-decoration: none;
-  color: var(--vt-c-text-dark-2);
-  transition: 0.4s;
-}
 
-body {
-  display:flex;
-}
+
 

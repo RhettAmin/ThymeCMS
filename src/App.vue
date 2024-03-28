@@ -8,7 +8,7 @@
         <h1 class="py-5 text-4xl">Thyme CMS</h1>
     
         <nav class="h-fit flex flex-col">
-          <RouterLink to="/" class="route-option ">Add Recipe</RouterLink>
+          <RouterLink to="/" class="route-option">Add Recipe</RouterLink>
           <RouterLink to="/view" class="route-option">View Recipes</RouterLink>
         </nav>
     </header>
