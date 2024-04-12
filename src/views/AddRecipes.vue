@@ -375,11 +375,13 @@
           // Add Main Image
           imageFolder?.file(this.mainImageRef.imageFileRef.name, this.mainImageRef.imageFileRef, {base64: true})
           // Add InstructionImages if they exist
-          if (this.listOfInstructionImages.length > 0) {
-            this.listOfInstructionImages.forEach( instructionImage => {
+          console.log("IMAGES")
+          console.log(this.listOfInstructionImages)
+          this.listOfInstructionImages.forEach( instructionImage => {
+            if (instructionImage.imageFileRef != null) {
               imageFolder?.file(instructionImage.imageFileRef.name, instructionImage.imageFileRef, {base64: true})
-            })
-          }
+            }
+          })
           let _this = this
           this.zip.generateAsync({type:"blob"}).then(function(content) {
               firebaseConn.uploadImage(_this.recipe.recipeId, content, (_this.$refs['progressBar'] as typeof ProgressBar)).then((imageURL) => {
