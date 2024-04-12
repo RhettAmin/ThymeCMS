@@ -56,7 +56,7 @@
                     <div class="px-1">
                         <div class="font-bold flex flex-col place-items-end"> 
                             <label class="text-lg">Per Serving</label>
-                            <label class="text-2xl">{{ calculatePerServing(nutritionFacts.calories) }}</label>  
+                            <label class="text-2xl">{{ Math.round(nutritionPerServing.calories) }}</label>  
                         </div>
 
                         <div class="bg-black h-[5px]"/>
@@ -69,12 +69,12 @@
                             <div v-for="(value, idx) in mainNutritionValues" :key="idx">
                                 <div class="grid grid-cols-3 space-between-4"> 
                                     <div class="col-start-1 col-end-2 flex">
-                                        <label v-if="value=='Cholesterol' || value=='Sodium'">{{ calculatePerServing(nutritionFacts.getValue(value)) }}mg</label>
-                                        <label v-else>{{ calculatePerServing(nutritionFacts.getValue(value)) }}g</label>
+                                        <label v-if="value=='Cholesterol' || value=='Sodium'">{{ nutritionPerServing.getValue(value).toFixed(1) }}mg</label>
+                                        <label v-else>{{ nutritionPerServing.getValue(value).toFixed(1) }}g</label>
                                     </div>
                                     <div class="col-start-3 flex pl-5">
                                         <label v-if="value=='Trans' || value=='Protein' || value=='Cholesterol' || value=='Sugars'"></label>
-                                        <label v-else>{{ dailyValue.calculateDV(value, calculatePerServing(nutritionFacts.getValue(value))) }}%</label>
+                                        <label v-else>{{ dailyValue.calculateDV(value, nutritionPerServing.getValue(value)) }}%</label>
                                     </div>
                                 </div>
                             </div>
@@ -86,11 +86,11 @@
                             <div v-for="(value, idx) in topVitamins" :key="idx">
                                 <div class="grid grid-cols-3 space-between-4"> 
                                     <div class="col-start-1 col-end-2 flex"> 
-                                        <label v-if="value=='Vitamin D'">{{ calculatePerServing(nutritionFacts.getValue(value)) }}mcg</label>
-                                        <label v-else>{{ calculatePerServing(nutritionFacts.getValue(value)) }}mg</label>
+                                        <label v-if="value=='Vitamin D'">{{ nutritionPerServing.getValue(value).toFixed(1) }}mcg</label>
+                                        <label v-else>{{ nutritionPerServing.getValue(value).toFixed(1) }}mg</label>
                                     </div>
                                     <div class="col-start-3 flex pl-5">
-                                        <label>{{ dailyValue.calculateDV(value, calculatePerServing(nutritionFacts.getValue(value))) }}%</label>
+                                        <label>{{ dailyValue.calculateDV(value, nutritionPerServing.getValue(value)) }}%</label>
                                     </div>
                                 </div>
                             </div>
@@ -158,15 +158,17 @@
 </template>
 
 <script lang="ts">
-    import { Serving, NutritionFacts } from '@/models/recipeModel';
+    import { Serving, IngredientSection, NutritionFacts } from '@/models/recipeModel';
     import { nutritionDailyValues } from '@/config/nutritionDailyValues';
-    import { nutriConfig } from '@/config/nutritionixConfig';
-    import axios from 'axios';
+    import NutritonixAPI from '@/api/nutrionix/nutrionixAPI';
+
+    type returnTupleType = [nutritionFacts: NutritionFacts, errors: string[]]
   
     export default {
         data() {
             return {
                 serving: new Serving(),
+                nutritionPerServing: new NutritionFacts(),
                 nutritionFacts: new NutritionFacts(),
                 dailyValue: new nutritionDailyValues,
                 mainNutritionValues: [
@@ -179,68 +181,39 @@
         
         methods: {
             calculatePerServing(value: number): number {
-                return Math.round(value * (this.serving.servingSize / this.serving.totalServings))
+                return value * (this.serving.servingSize / this.serving.totalServings)
             },
 
-            callNutritionixAPI(searchString: string) {
-                axios.post(
-                    nutriConfig.baseUrl+nutriConfig.naturalLangEndpoint,
-                    {
-                        "query": searchString
-                    }, 
+            setNutritionPerServing(facts: NutritionFacts) {
+                this.nutritionPerServing.calories = this.calculatePerServing(facts.calories)
+                this.nutritionPerServing.fat = this.calculatePerServing(facts.fat)
+                this.nutritionPerServing.saturatedFat = this.calculatePerServing(facts.saturatedFat)
+                this.nutritionPerServing.transFat = this.calculatePerServing(facts.transFat)
+                this.nutritionPerServing.carbohydrate = this.calculatePerServing(facts.carbohydrate)
+                this.nutritionPerServing.fibre = this.calculatePerServing(facts.fibre)
+                this.nutritionPerServing.sugars = this.calculatePerServing(facts.sugars)
+                this.nutritionPerServing.protein = this.calculatePerServing(facts.protein)
+                this.nutritionPerServing.cholesterol = this.calculatePerServing(facts.cholesterol)
+                this.nutritionPerServing.sodium = this.calculatePerServing(facts.sodium)
+                this.nutritionPerServing.vitaminD = this.calculatePerServing(facts.vitaminD)
+                this.nutritionPerServing.iron = this.calculatePerServing(facts.iron)
+                this.nutritionPerServing.potassium = this.calculatePerServing(facts.potassium)
+                this.nutritionPerServing.calcium = this.calculatePerServing(facts.calcium)
+            },
 
-                    {
-                    params: {
-                        'x-app-id': nutriConfig.appId,
-                        'x-app-key': nutriConfig.appKey
-                    }
+            async updateFactsTable(ingredientSections: IngredientSection[], serving: Serving) {
+                return await new Promise<returnTupleType>( (resolve) => {
+                    this.serving = serving
+                
+                    console.log("updating Table...")
+                    NutritonixAPI.getNaturalLangNutrition(ingredientSections).then( (responseTuple) => {
+                        this.nutritionFacts = responseTuple[0]
+                        this.setNutritionPerServing(this.nutritionFacts)
+                        resolve(responseTuple)
                     })
-                    .then(response => {
-                    console.log(response.data.foods)
-
-                    // Map to Nutrition Facts
-                    response.data.foods.forEach((food:any) => {
-                        this.nutritionFacts.calories += Math.round(food.nf_calories);
-                        this.nutritionFacts.fat += Math.round(food.nf_total_fat);
-                        this.nutritionFacts.saturatedFat += Math.round(food.nf_saturated_fat);
-                        this.nutritionFacts.carbohydrate += Math.round(food.nf_total_carbohydrate);
-                        this.nutritionFacts.fibre += Math.round(food.nf_dietary_fiber);
-                        this.nutritionFacts.sugars += Math.round(food.nf_sugars);
-                        this.nutritionFacts.protein += Math.round(food.nf_protein);
-                        this.nutritionFacts.cholesterol += Math.round(food.nf_cholesterol);
-                        this.nutritionFacts.sodium += Math.round(food.nf_sodium);
-
-                        // Vitamin D (324)
-                        this.nutritionFacts.vitaminD += Math.round(this.findOrZero(food.full_nutrients.find((item: any) => item.attr_id == 324)) * 0.025)
-                        // Iron (303)
-                        this.nutritionFacts.iron += Math.round(this.findOrZero(food.full_nutrients.find((item: any) => item.attr_id == 303)));
-                        // Potassium (306)
-                        this.nutritionFacts.potassium += Math.round(this.findOrZero(food.full_nutrients.find((item: any) => item.attr_id == 306)));
-                        // Calcium (301)
-                        this.nutritionFacts.calcium += Math.round(this.findOrZero(food.full_nutrients.find((item: any) => item.attr_id == 301)));
-                    });
-
-                    })
-                    .catch(err => {
-                        console.error(err);
-                    }
-                );
-            },
-
-            findOrZero(item: any): number {
-                if (item == null || undefined) {
-                    return 0
-                } else {
-                    return item.value
-                }
-            },
-
-            updateFactsTable: function(searchString: string, serving: Serving): NutritionFacts {
-                this.serving = serving
-                this.nutritionFacts = new NutritionFacts
-                console.log("updating Table...")
-                this.callNutritionixAPI(searchString);
-                return this.nutritionFacts
+                })
+                
+                
             }
         },
     };

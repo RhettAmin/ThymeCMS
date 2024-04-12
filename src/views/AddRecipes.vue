@@ -172,6 +172,9 @@
           <div class="pb-2 flex justify-center">
             <label class="rounded border p-1 bg-blue-400 cursor-pointer" v-on:click="calculateNutritionValues">Calculate Nutrition Values</label>
           </div>
+          <div v-if="isThereNutritionErrors" class="flex flex-col space-y-4 pb-2">
+            <label class="bg-red-300" v-for="(issue, idx) in nutritionErrors" :key="idx"> {{ issue }}</label>
+          </div>
           <NutritionFactsLabel ref="nutriFactLabel"/>
         </div>
       </div>
@@ -212,6 +215,8 @@
         progressBar: ref(ProgressBar),
         listOfInstructionImages: [] as InstructionImageRef[],
         isSubmitting: false,
+        isThereNutritionErrors: false,
+        nutritionErrors: [],
         recipe: {
           recipeId: '',
           name: '',
@@ -294,24 +299,16 @@
 
       // =============== NutritionLabel ==============
       calculateNutritionValues() {
-        let queryString = ""
+        (this.$refs['nutriFactLabel'] as typeof NutritionFactsLabel)
+          .updateFactsTable(this.recipe.ingredientSection, this.recipe.serving).then( (responseTuple: any) => {
+            this.recipe.nutritionFacts = responseTuple[0]
 
-        this.recipe.ingredientSection.forEach(section => {
-          section.ingredients.forEach(ingredient => {
-            queryString += ingredient.quantity + " " + ingredient.measurement + " " + ingredient.name + " "
+            if (responseTuple[1].length > 0) {
+              this.isThereNutritionErrors = true
+              this.nutritionErrors = responseTuple[1]
+              Toaster.toastError("couldn't find the following foods: " + responseTuple[1])
+            }
           })
-        })
-
-        console.log(queryString)
-
-        if (queryString != "") {
-          this.recipe.nutritionFacts = 
-            (this.$refs['nutriFactLabel'] as typeof NutritionFactsLabel)
-              .updateFactsTable(queryString, this.recipe.serving)
-        }
-        else {
-          Toaster.toastError("Enter some ingredients!")
-        }
       },
 
       // ====================  Recipe Upload Calls  =====================================
