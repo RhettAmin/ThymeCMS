@@ -30,4 +30,4 @@ coverage
 .vscode
 
 # excluded files
-src/config/*
+src/config
