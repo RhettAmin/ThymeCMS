@@ -1,5 +1,6 @@
 import { initializeApp } from 'firebase/app'
 import { getStorage } from "firebase/storage";
+import { getAuth } from "firebase/auth";
 
 export const firebaseApp = initializeApp({
   // application settings
@@ -9,8 +10,11 @@ export const firebaseApp = initializeApp({
   storageBucket: "primeval-stack-408400.appspot.com",
   messagingSenderId: "462093202517",
   appId: "1:462093202517:web:17d506ecb43e7e59a7d0dc",
-  measurementId: "G-YEEV13GE43"
+  measurementId: "G-YEEV13GE43",
 })
 
+export const auth = ["rhett.thyme@gmail.com", "thymeAuthForAccess"]
+
 // here we can export reusable database references
-export const thymeStorage = getStorage(firebaseApp)
+export const thymeStorage = getStorage(firebaseApp);
+export const thymeAuth = getAuth(firebaseApp);

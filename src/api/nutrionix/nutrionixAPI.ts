@@ -38,7 +38,8 @@ async function getNaturalLangNutrition(ingredientSections: IngredientSection[]) 
             if (foods.length != ingredientSize) {
                 ingredientSections.forEach(section => {
                     section.ingredients.forEach(ingredient => {
-                        const checkFoodExistence = foods.some( (food: { food_name: string; }) => food.food_name == ingredient.name)
+                        const checkFoodExistence = foods.some( (food: { food_name: string; }) => 
+                            food.food_name.localeCompare(ingredient.name, 'en', {sensitivity: 'base'}) == 0 )
                         if (checkFoodExistence == false) {
                             missingIngredients.push(ingredient.name)
                         }

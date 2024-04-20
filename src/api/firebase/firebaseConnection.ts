@@ -1,5 +1,6 @@
 import { uploadBytesResumable, getDownloadURL, ref as storageRef, type StorageReference } from 'firebase/storage'
-import { thymeStorage } from '@/config/firebase'
+import { auth, thymeAuth, thymeStorage } from '@/config/firebase'
+import { signInWithEmailAndPassword } from "firebase/auth";
 import ProgressBar from '@/components/ProgressBar.vue'
 import Toaster from "@/components/toast";
 
@@ -20,8 +21,15 @@ export class InstructionImageRef extends ImageRef {
 async function uploadImage(location: string, imageFolder: any, progressbar: typeof ProgressBar) {
     return await new Promise<string>( (resolve, reject) => {
         console.log("firebase Image Upload starting...")
+        
         firebaseStorageRef = storageRef(thymeStorage, location) 
         if (imageFolder) {
+
+            // Authenticate first
+            console.log(location)
+            console.log(imageFolder)
+            signInWithEmailAndPassword(thymeAuth, auth[0], auth[1])
+           
             const uploadTask = uploadBytesResumable(firebaseStorageRef, imageFolder);
             Toaster.toastInfo("Image upload Started")
             // Register three observers:
@@ -42,7 +50,7 @@ async function uploadImage(location: string, imageFolder: any, progressbar: type
                         console.log('Upload is ' + progress + '% done');
                         break;
                 }
-                }, 
+                            }, 
                 (error) => {
                     // Handle unsuccessful uploads
                     console.error(error)
@@ -58,6 +66,7 @@ async function uploadImage(location: string, imageFolder: any, progressbar: type
                     });
                 }
             )
+             
         }
     })
 }

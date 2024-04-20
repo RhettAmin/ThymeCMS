@@ -384,7 +384,10 @@
           })
           let _this = this
           this.zip.generateAsync({type:"blob"}).then(function(content) {
-              firebaseConn.uploadImage(_this.recipe.recipeId, content, (_this.$refs['progressBar'] as typeof ProgressBar)).then((imageURL) => {
+
+              const location = _this.recipe.name.replace(/ /g, '-') + "_" + _this.recipe.recipeId
+
+              firebaseConn.uploadImage(location, content, (_this.$refs['progressBar'] as typeof ProgressBar)).then((imageURL) => {
                 _this.recipe.images = imageURL
                 resolve()
               })

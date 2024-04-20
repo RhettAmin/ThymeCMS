@@ -159,7 +159,7 @@
 
 <script lang="ts">
     import { Serving, IngredientSection, NutritionFacts } from '@/models/recipeModel';
-    import { nutritionDailyValues } from '@/config/nutritionDailyValues';
+    import { nutritionDailyValues } from '@/components/nutritionDailyValues';
     import NutritonixAPI from '@/api/nutrionix/nutrionixAPI';
 
     type returnTupleType = [nutritionFacts: NutritionFacts, errors: string[]]
@@ -219,3 +219,4 @@
     };
     
 </script>
+@/components/nutritionDailyValues
