@@ -1,5 +1,5 @@
 import { uploadBytesResumable, getDownloadURL, ref as storageRef, type StorageReference } from 'firebase/storage'
-import { auth, thymeAuth, thymeStorage } from '@/config/firebase'
+import { auth, thymeAuth, thymeStorage } from '@/config/firebaseConfig'
 import { signInWithEmailAndPassword } from "firebase/auth";
 import ProgressBar from '@/components/ProgressBar.vue'
 import Toaster from "@/components/toast";
