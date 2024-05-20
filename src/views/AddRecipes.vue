@@ -193,7 +193,7 @@
 <script lang="ts">
   
   import { Recipe, Serving, IngredientSection, Ingredient, InstructionSection, NutritionFacts } from '@/models/recipeModel';
-  import firebaseConn, { MainImageRef, InstructionImageRef }  from '@/api/firebase/firebaseConnection'
+  import FirebaseConn, { MainImageRef, InstructionImageRef }  from '@/api/firebase/firebaseConnection'
   import NutritionFactsLabel from '@/components/NutritionFactsLabel.vue';
   import ProgressBar from '@/components/ProgressBar.vue'
   import ThymeBackendAPI from '@/api/backend/thymebackend';
@@ -285,6 +285,7 @@
         this.listOfInstructionImages[index].imageFileRef = file.target.files[0]
         // set Reference img display after file upload
         this.listOfInstructionImages[index].imageURLPreview = URL.createObjectURL(imageFile)
+        // set the recipe instruction section 'hasImage' field
       },
 
       addInstruction(instructionSection: InstructionSection) {
@@ -387,7 +388,7 @@
 
               const location = _this.recipe.name.replace(/ /g, '-') + "_" + _this.recipe.recipeId
 
-              firebaseConn.uploadImage(location, content, (_this.$refs['progressBar'] as typeof ProgressBar)).then((imageURL) => {
+              FirebaseConn.uploadImage(location, content, (_this.$refs['progressBar'] as typeof ProgressBar)).then((imageURL) => {
                 _this.recipe.images = imageURL
                 resolve()
               })

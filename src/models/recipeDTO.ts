@@ -1,54 +1,52 @@
-class Recipe {
-    recipeId: string = '';
-    name: string = '';
-    description: string = '';
-    serving: Serving = new Serving;
+class RecipeDTO {
+    recipe_id: string = "";
+    name: string = "";
+    description: string = "";
+    serving: ServingDTO = new ServingDTO;
     tags: string[] = [];
-    timeToPlate: number = 0;
-    mainImage: Blob | undefined = undefined;
-    images: string = '';
-    createdDate: string = '';
-    updatedDate: string = '';
-    ingredientSection: IngredientSection[] = [];
-    instructionSection: InstructionSection[] = [];
-    nutritionFacts: NutritionFacts = new NutritionFacts;
+    time_to_plate: number = 0;
+    images: string = "";
+    created_date: string = "";
+    updated_date: string = "";
+    ingredient_section: IngredientSectionDTO[] = [];
+    instruction_section: InstructionSectionDTO[] = [];
+    nutrition_facts: NutritionFactsDTO = new NutritionFactsDTO;
 }
 
-class Serving {
-    totalServings: number = 0;
-    servingSize: number = 0;
-    amount: string = '';
+class ServingDTO {
+    total_servings: number = 0;
+    serving_size: number = 0;
+    amount: string = "";
 }
 
-class IngredientSection {
-    sectionName: string = '';
-    ingredients: Ingredient[] = [];
+class IngredientSectionDTO {
+    section_name: string = "";
+    ingredients: IngredientDTO[] = [];
 }
 
-class Ingredient {
-    name: string = '';
+class IngredientDTO {
+    name: string = "";
     quantity: number = 0;
-    measurement: string = '';
+    measurement: string = "";
 }
 
-class InstructionSection {
-    sectionName: string = '';
-    image: Blob | undefined = undefined;
+class InstructionSectionDTO {
+    section_name: string = "";
     steps: string[] = [];
 }
 
-class NutritionFacts {
+class NutritionFactsDTO {
     calories: number = 0;
     fat: number = 0;
-    saturatedFat: number = 0;
-    transFat: number = 0;
+    saturated_fat: number = 0;
+    trans_fat: number = 0;
     carbohydrate: number = 0;
     fibre: number = 0;
     sugars: number = 0;
     protein: number = 0;
     cholesterol: number = 0;
     sodium: number = 0;
-    vitaminD: number = 0;
+    vitamin_d: number = 0;
     iron: number = 0;
     potassium: number = 0;
     calcium: number = 0;
@@ -62,10 +60,10 @@ class NutritionFacts {
                 return this.fat;
             }
             case "Saturated": {
-                return this.saturatedFat;
+                return this.saturated_fat;
             }
             case "Trans": {
-                return this.transFat;
+                return this.trans_fat;
             }
             case "Carbohydrate": {
                 return this.carbohydrate;
@@ -86,7 +84,7 @@ class NutritionFacts {
                 return this.sodium;
             }
             case "Vitamin D": {
-                return this.vitaminD;
+                return this.vitamin_d;
             }
             case "Iron": {
                 return this.iron;
@@ -102,4 +100,4 @@ class NutritionFacts {
     }
 }
 
-export { Recipe, Serving, IngredientSection, Ingredient, InstructionSection, NutritionFacts }
+export { RecipeDTO, ServingDTO, IngredientSectionDTO, IngredientDTO, InstructionSectionDTO, NutritionFactsDTO }

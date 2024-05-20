@@ -10,6 +10,7 @@
         <nav class="h-fit flex flex-col">
           <RouterLink to="/" class="route-option">Add Recipe</RouterLink>
           <RouterLink to="/view" class="route-option">View Recipes</RouterLink>
+          <RouterLink to="/playground" class="route-option">Playground Page</RouterLink>
         </nav>
     </header>
 

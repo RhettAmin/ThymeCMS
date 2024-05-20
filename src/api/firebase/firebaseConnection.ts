@@ -1,8 +1,12 @@
 import { uploadBytesResumable, getDownloadURL, ref as storageRef, type StorageReference } from 'firebase/storage'
-import { auth, thymeAuth, thymeStorage } from '@/config/firebaseConfig'
+import ThymeFirebaseConn from '@/config/firebaseConfig'
 import { signInWithEmailAndPassword } from "firebase/auth";
+import { Recipe } from '@/models/recipeModel'
 import ProgressBar from '@/components/ProgressBar.vue'
 import Toaster from "@/components/toast";
+import JSZip from 'jszip'
+
+const zipper = new JSZip()
 
 let firebaseStorageRef = null as unknown as StorageReference
 
@@ -18,19 +22,19 @@ export class InstructionImageRef extends ImageRef {
     index = 0
 }
 
-async function uploadImage(location: string, imageFolder: any, progressbar: typeof ProgressBar) {
+async function uploadImage(location: string, data: any, progressbar: typeof ProgressBar) {
     return await new Promise<string>( (resolve, reject) => {
         console.log("firebase Image Upload starting...")
         
-        firebaseStorageRef = storageRef(thymeStorage, location) 
-        if (imageFolder) {
+        firebaseStorageRef = storageRef(ThymeFirebaseConn.thymeStorage, location) 
+        if (data) {
 
             // Authenticate first
             console.log(location)
-            console.log(imageFolder)
-            signInWithEmailAndPassword(thymeAuth, auth[0], auth[1])
+            console.log(data)
+            signInWithEmailAndPassword(ThymeFirebaseConn.thymeAuth, ThymeFirebaseConn.auth[0], ThymeFirebaseConn.auth[1])
            
-            const uploadTask = uploadBytesResumable(firebaseStorageRef, imageFolder);
+            const uploadTask = uploadBytesResumable(firebaseStorageRef, data);
             Toaster.toastInfo("Image upload Started")
             // Register three observers:
             // 1. 'state_changed' observer, called any time the state changes
@@ -71,8 +75,64 @@ async function uploadImage(location: string, imageFolder: any, progressbar: type
     })
 }
 
-const firebaseConn = {
-    uploadImage
+async function getImage(recipe: Recipe) {
+    return await new Promise<Recipe> ( (resolve, reject) => {
+
+        getImagefromFirebase(recipe).then((recipeResponse) => {
+            console.log("returning recipe")
+            console.log(recipe)
+            resolve(recipeResponse)
+        })
+
+    })
 }
 
-export default firebaseConn
+async function getImagefromFirebase(recipe: Recipe) {
+    return await new Promise<Recipe> ( (resolve, reject) => {
+        const referenceName = recipe.name.replace(/ /g, '-') + "_" + recipe.recipeId
+
+        const xhr = new XMLHttpRequest();
+        xhr.responseType = 'blob';
+        try {
+            xhr.onload = () => {
+                const blob = xhr.response;
+
+                zipper.loadAsync(blob).then( (zip) => {    
+                    // boolean to determine if we're setting the main Image or instructionImages
+                    let isMainImage = true
+                    let counter = 0
+                    const zipContent = Object.keys(zip.files)
+                    for (const [index, value] of zipContent.entries()) {
+                        const file = value
+                        if (file != referenceName+"/") {
+                            zip.files[file].async("blob").then(function (blobFile) {
+                                if (blobFile.size != 0) {
+                                    if (isMainImage) {
+                                        recipe.mainImage = blobFile
+                                        isMainImage = false
+                                    } else {
+                                        recipe.instructionSection[counter].image = blobFile
+                                        counter++
+                                        if (index == zipContent.length-1) {
+                                            resolve(recipe)
+                                        }
+                                    }
+                                }
+                            })
+                        }
+                    }
+                })
+            }
+            xhr.open('GET', recipe.images);
+            xhr.send();
+        } catch {
+            reject("failed to fetch Image" + recipe.images)
+        }
+    })
+}
+
+const FirebaseConn = {
+    uploadImage, getImage
+}
+
+export default FirebaseConn

@@ -2,6 +2,8 @@
   "files": [],
   "compilerOptions": {
     "baseUrl": "./src",
+    "isolatedModules": true,
+    "types": ["node"],
     "paths": {
       "@/*": [
         "*"
