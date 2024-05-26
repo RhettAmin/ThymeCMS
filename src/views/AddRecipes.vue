@@ -269,7 +269,7 @@
         let instructionSection = new InstructionSection();
         // Add an imageRef to the list of Image Refs
         let imageRef = new InstructionImageRef
-        imageRef.index = this.listOfInstructionImages.length
+        imageRef.index = this.recipe.instructionSection.length
         this.listOfInstructionImages.push(imageRef)
         // Add instructionSection to the list
         this.recipe.instructionSection.push(instructionSection)
@@ -285,7 +285,6 @@
         this.listOfInstructionImages[index].imageFileRef = file.target.files[0]
         // set Reference img display after file upload
         this.listOfInstructionImages[index].imageURLPreview = URL.createObjectURL(imageFile)
-        // set the recipe instruction section 'hasImage' field
       },
 
       addInstruction(instructionSection: InstructionSection) {
@@ -374,13 +373,13 @@
         return await new Promise<void>( (resolve) => {
           let imageFolder = this.zip.folder(this.recipe.recipeId)
           // Add Main Image
-          imageFolder?.file(this.mainImageRef.imageFileRef.name, this.mainImageRef.imageFileRef, {base64: true})
+          imageFolder?.file("main_"+this.mainImageRef.imageFileRef.name, this.mainImageRef.imageFileRef)
           // Add InstructionImages if they exist
           console.log("IMAGES")
           console.log(this.listOfInstructionImages)
           this.listOfInstructionImages.forEach( instructionImage => {
             if (instructionImage.imageFileRef != null) {
-              imageFolder?.file(instructionImage.imageFileRef.name, instructionImage.imageFileRef, {base64: true})
+              imageFolder?.file(instructionImage.index + "_" + instructionImage.imageFileRef.name, instructionImage.imageFileRef)
             }
           })
           let _this = this

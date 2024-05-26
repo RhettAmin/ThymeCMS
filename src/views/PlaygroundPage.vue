@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-col items-center justify-center">
+    <div class="flex flex-col items-center justify-center overflow-auto">
         <div class="flex pb-10">
             <h1>Playground Page</h1>
         </div>
@@ -72,7 +72,7 @@
 
         methods: {
             getRecipe() {
-                const recipeIDTest = "b085d1bf4cff8b1045750706b11f8662"
+                const recipeIDTest = "2a7cff4b33c8a7de9d166434256c6061"
                 ThymeBackendAPI.getRecipe(recipeIDTest).then( (recipe) => {
                     this.recipe = recipe
                     this.getImages()
