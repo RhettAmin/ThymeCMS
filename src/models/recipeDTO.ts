@@ -28,6 +28,7 @@ class IngredientDTO {
     name: string = "";
     quantity: number = 0;
     measurement: string = "";
+    type: number = 0;
 }
 
 class InstructionSectionDTO {

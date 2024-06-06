@@ -1,72 +1,7 @@
-<script setup lang="ts">
-</script>
-
-<template>
-  <div class="main flex flex-col place-items-center px-5">
-    <h1 class="text-xl pb-5">View all Recipes</h1>
-    <table class="table-auto">
-      <thead>
-        <tr class="bg-green-800">
-          <th class="border-2 px-4 py-2">Id</th>
-          <th class="border-2 px-4 py-2">Name</th>
-          <th class="border-2 px-4 py-2">Description</th>
-          <th class="border-2 px-4 py-2">Servings</th>
-          <th class="border-2 px-4 py-2">Tags</th>
-          <th class="border-2 px-4 py-2">Image</th>
-          <th class="border-2 px-4 py-2">Ingredients</th>
-          <th class="border-2 px-4 py-2">Instructions</th>
-          <th class="border-2 px-4 py-2">Nutrition Facts</th>
-          <th class="border-2 px-4 py-2">Delete</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr class="" v-for="(recipe, idx) in recipes" :key="idx">
-          <td class="border-2 px-4 py-2">{{ recipe.id }}</td>
-          <td class="border-2 px-4 py-2">{{ recipe.name }}</td>
-          <td class="border-2 px-4 py-2">{{ recipe.description }}</td>
-          <td class="border-2 px-4 py-2">{{ recipe.servings }}</td>
-          <td class="border-2 px-4 py-2">{{ recipe.tags.toString() }}</td>
-          <td class="border-2 px-4 py-2">{{ recipe.image }}</td>
-          <td class="border-2 px-4 py-2">
-            <div>
-              <div class="" v-for="(ingredientSection, iidx) in recipe.ingredientSection" :key="iidx">
-                <label value="{{ ingredientSection.sectionName }}"></label>
-                <div class="flex flex-row" v-for="(ingredient, idx) in ingredientSection.ingredients" :key="idx">
-                  <label>
-                     {{ ingredient.name }} {{ ingredient.quantity }} {{ ingredient.measurement }} 
-                  </label>
-                </div>
-              </div>
-            </div>
-          </td>
-          <td class="border-2 px-4 py-2">
-            <div>
-              <div class="list-decimal" v-for="(instructionSection, idx) in recipe.instructionSection" :key="idx">
-                <label value="{{ instructionSection.sectionName }}"></label>
-                <ol>
-                  <li class="flex flex-row" v-for="(step, idx) in instructionSection.steps" :key="idx"> {{ step }}</li>
-                </ol>
-              </div>
-            </div>
-          </td>
-          <td class="border-2 px-4 py-2">
-            <div>
-              <p>NutritionFacts HERE</p>
-            </div>
-          </td>
-          <td class="border-2 text-center justify-center">
-            <font-awesome-icon @click="deleteRecipe(recipe.id)" class="bg-blue-300 w-5 h-5 p-2 rounded-md" icon="fa-solid fa-trash" />
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</template>
-
-
 <script lang="ts">
-  import axios from 'axios';
-  import {Recipe} from '../models/recipeModel';
+  import { Recipe } from '@/models/recipeModel'
+  import ThymeBackendAPI from '@/api/backend/thymebackend'
+  import FirebaseConn from '@/api/firebase/firebaseConnection'
 
   export default {
     data() {
@@ -76,40 +11,63 @@
     },
 
     methods: {
-      deleteRecipe(idx: string) {
-        axios.delete('http://localhost:9292/recipes', {
-          params: {
-            id: idx
-          }
+      deleteRecipe(id: string) {
+        ThymeBackendAPI.deleteRecipe(id).then(() => {
         })
-        .then(response => {
-          console.log(response);
-        })
-        .finally(() => 
-          this.getRecipes()
-        )
       },
 
-      getRecipes() {
-        axios.get('http://localhost:9292/recipes', {
-          params: {
-            id: '',
-            name:''
-          }
-        })
-        .then(response => {
-          this.recipes = response.data;
-          console.log(response);
-        })
-        .catch(function (error) {
-          console.log(error);
-        });  
+      setImage(imgString: Blob): any{
+          return URL.createObjectURL(imgString) 
       }
     },
 
     mounted() {
-      this.getRecipes()
+      ThymeBackendAPI.getRecipe().then((response) => {
+        for (const [index, value] of response.entries()) {
+          FirebaseConn.getImage(value).then((imageResponse) => {
+            this.recipes.push(imageResponse)
+            this.recipes
+          }).catch((error) => {
+
+          })
+        }
+        
+      })
+      
     }
   }
 
 </script>
+
+<template>
+  <!-- Page -->
+  <div class="flex flex-col items-center">
+    <h1 class="text-2xl font-bold">View Recipes</h1>
+
+    <!-- Recipe Card -->
+    <div class="border bg-red-300 w-3/5 my-2 p-4" v-for="(recipe, idx) in recipes" :key="idx">
+      <div class="flex flex-row">
+        <!-- Image -->
+        <div>
+          <img class="" v-if="recipe.mainImage" :src=setImage(recipe.mainImage.imageFileRef) width="200" height="200"/>
+        </div>
+
+        <!-- Info Body -->
+        <div class="w-full px-2">
+          <!-- Top Line --> 
+          <div class="flex flex-row justify-between">
+            <div class="">{{ recipe.name }}</div>
+            <div class="items-end">
+              <font-awesome-icon @click="deleteRecipe(recipe.recipeId)" class="w-4 h-4" icon="fa-solid fa-trash" /> 
+            </div>
+          </div>
+          <div class="flex justify-center pt-12">
+            <RouterLink :to="{ path:'/recipe', query: { id: recipe.recipeId } }" class="route-option border rounded-md bg-green-400 px-4 py-2 ">Edit</RouterLink>
+          </div>
+        </div>
+        
+      </div>
+    </div>
+
+  </div>
+</template>

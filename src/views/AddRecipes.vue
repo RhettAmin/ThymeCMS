@@ -167,6 +167,7 @@
       </div>
       <!-- INSTRUCTIONS END -->
 
+      <!-- Nutriftion Facts -->
       <div class="p-4">
         <div class="flex flex-col justify-center px-44">
           <div class="pb-2 flex justify-center">
@@ -179,6 +180,7 @@
         </div>
       </div>
 
+      <!-- Progress Bar -->
       <div class="flex flex-col py-2 px-4">
         <div v-if="isSubmitting"> 
           <ProgressBar ref="progressBar" />
@@ -192,8 +194,8 @@
 
 <script lang="ts">
   
-  import { Recipe, Serving, IngredientSection, Ingredient, InstructionSection, NutritionFacts } from '@/models/recipeModel';
-  import FirebaseConn, { MainImageRef, InstructionImageRef }  from '@/api/firebase/firebaseConnection'
+  import { Recipe, Serving, IngredientSection, Ingredient, InstructionSection, NutritionFacts, MainImageRef, InstructionImageRef } from '@/models/recipeModel';
+  import FirebaseConn from '@/api/firebase/firebaseConnection'
   import NutritionFactsLabel from '@/components/NutritionFactsLabel.vue';
   import ProgressBar from '@/components/ProgressBar.vue'
   import ThymeBackendAPI from '@/api/backend/thymebackend';
@@ -238,7 +240,8 @@
         const file = event.target.files[0]; 
         this.mainImageRef.imageFileRef = file
         // set Reference img display after file upload
-        this.mainImageRef.imageURLPreview = URL.createObjectURL(file)    
+        this.mainImageRef.imageURLPreview = URL.createObjectURL(file)  
+        console.log(this.mainImageRef)  
       },
 
       // === Tags ===
@@ -251,6 +254,7 @@
       addIngredientSection() {
         let ingredientSection = new IngredientSection();
         this.recipe.ingredientSection.push(ingredientSection)
+        console.log(this.recipe)
       },
       addIngredient(ingredientSection: IngredientSection) {
         let ingredient = new Ingredient();
@@ -267,12 +271,15 @@
       addInstructionSection() {
         // Create Instruction Section
         let instructionSection = new InstructionSection();
+
         // Add an imageRef to the list of Image Refs
         let imageRef = new InstructionImageRef
         imageRef.index = this.recipe.instructionSection.length
         this.listOfInstructionImages.push(imageRef)
+
         // Add instructionSection to the list
         this.recipe.instructionSection.push(instructionSection)
+        console.log(this.recipe)
       },
 
       updateInstructImageRefOnSectionNameChange(index: number, name: string) {
@@ -335,7 +342,7 @@
               ThymeBackendAPI.postRecipe(this.recipe).then( () => {
                 this.updateStep("Uploading Complete!")
                 this.updateProgress(100)
-                setTimeout(function() {window.location.reload()}, 2000)
+                //setTimeout(function() {window.location.reload()}, 2000)
               })
             })
           })
@@ -372,11 +379,11 @@
       async uploadImages() {
         return await new Promise<void>( (resolve) => {
           let imageFolder = this.zip.folder(this.recipe.recipeId)
+
           // Add Main Image
-          imageFolder?.file("main_"+this.mainImageRef.imageFileRef.name, this.mainImageRef.imageFileRef)
+          imageFolder?.file("main_"+this.mainImageRef.imageFileRef!!.name, this.mainImageRef.imageFileRef!!)
+          
           // Add InstructionImages if they exist
-          console.log("IMAGES")
-          console.log(this.listOfInstructionImages)
           this.listOfInstructionImages.forEach( instructionImage => {
             if (instructionImage.imageFileRef != null) {
               imageFolder?.file(instructionImage.index + "_" + instructionImage.imageFileRef.name, instructionImage.imageFileRef)
@@ -385,7 +392,7 @@
           let _this = this
           this.zip.generateAsync({type:"blob"}).then(function(content) {
 
-              const location = _this.recipe.name.replace(/ /g, '-') + "_" + _this.recipe.recipeId
+              const location = _this.recipe.name.replace(/ /g, '-') + "_" + _this.recipe.recipeId + ".zip"
 
               FirebaseConn.uploadImage(location, content, (_this.$refs['progressBar'] as typeof ProgressBar)).then((imageURL) => {
                 _this.recipe.images = imageURL

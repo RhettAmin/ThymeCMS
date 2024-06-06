@@ -180,6 +180,13 @@
         },
         
         methods: {
+
+            setup(facts: NutritionFacts, serving: Serving) {
+                this.nutritionFacts = facts
+                this.serving = serving
+                this.setNutritionPerServing(facts)
+            },
+
             calculatePerServing(value: number): number {
                 return value * (this.serving.servingSize / this.serving.totalServings)
             },
@@ -212,8 +219,6 @@
                         resolve(responseTuple)
                     })
                 })
-                
-                
             }
         },
     };

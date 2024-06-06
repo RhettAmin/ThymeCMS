@@ -5,7 +5,8 @@ class Recipe {
     serving: Serving = new Serving;
     tags: string[] = [];
     timeToPlate: number = 0;
-    mainImage: Blob | undefined = undefined;
+    heroImage: MainImageRef | undefined = undefined;
+    mainImage: MainImageRef | undefined = undefined;
     images: string = '';
     createdDate: string = '';
     updatedDate: string = '';
@@ -29,11 +30,12 @@ class Ingredient {
     name: string = '';
     quantity: number = 0;
     measurement: string = '';
+    type: number = 0;
 }
 
 class InstructionSection {
     sectionName: string = '';
-    image: Blob | undefined = undefined;
+    image: InstructionImageRef | undefined = undefined;
     steps: string[] = [];
 }
 
@@ -102,4 +104,17 @@ class NutritionFacts {
     }
 }
 
-export { Recipe, Serving, IngredientSection, Ingredient, InstructionSection, NutritionFacts }
+class ImageRef {
+    imageFileRef: any = null
+    imageName: string = ""
+    imageURLPreview: string = ""
+}
+
+class MainImageRef extends ImageRef {}
+
+class InstructionImageRef extends ImageRef {
+    instructionSection: string = ""
+    index = 0
+}
+
+export { Recipe, Serving, IngredientSection, Ingredient, InstructionSection, NutritionFacts, MainImageRef, InstructionImageRef }

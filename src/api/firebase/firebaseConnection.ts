@@ -1,7 +1,7 @@
-import { uploadBytesResumable, getDownloadURL, ref as storageRef, type StorageReference } from 'firebase/storage'
+import { uploadBytesResumable, getDownloadURL, getMetadata, deleteObject, ref as storageRef, type StorageReference } from 'firebase/storage'
 import ThymeFirebaseConn from '@/config/firebaseConfig'
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { Recipe } from '@/models/recipeModel'
+import { Recipe, MainImageRef, InstructionImageRef } from '@/models/recipeModel'
 import ProgressBar from '@/components/ProgressBar.vue'
 import Toaster from "@/components/toast";
 import JSZip from 'jszip'
@@ -10,28 +10,14 @@ const zipper = new JSZip()
 
 let firebaseStorageRef = null as unknown as StorageReference
 
-export class ImageRef {
-    imageFileRef: any = null
-    imageURLPreview: string = ""
-}
-
-export class MainImageRef extends ImageRef {}
-
-export class InstructionImageRef extends ImageRef {
-    instructionSection: string = ""
-    index = 0
-}
-
 async function uploadImage(location: string, data: any, progressbar: typeof ProgressBar) {
     return await new Promise<string>( (resolve, reject) => {
+
         console.log("firebase Image Upload starting...")
-        
         firebaseStorageRef = storageRef(ThymeFirebaseConn.thymeStorage, location) 
         if (data) {
 
             // Authenticate first
-            console.log(location)
-            console.log(data)
             signInWithEmailAndPassword(ThymeFirebaseConn.thymeAuth, ThymeFirebaseConn.auth[0], ThymeFirebaseConn.auth[1])
            
             const uploadTask = uploadBytesResumable(firebaseStorageRef, data);
@@ -75,11 +61,21 @@ async function uploadImage(location: string, data: any, progressbar: typeof Prog
     })
 }
 
+async function deleteStorageFile(fileName: string) {
+    const file = storageRef(ThymeFirebaseConn.thymeStorage, fileName)
+
+    deleteObject(file).then(() => {
+
+    })
+}
+
 async function getImage(recipe: Recipe) {
     return await new Promise<Recipe> ( (resolve, reject) => {
 
         getImagefromFirebase(recipe).then((recipeResponse) => {
             resolve(recipeResponse)
+        }).catch((error) => {
+            reject(error)
         })
 
     })
@@ -87,8 +83,6 @@ async function getImage(recipe: Recipe) {
 
 async function getImagefromFirebase(recipe: Recipe) {
     return await new Promise<Recipe> ( (resolve, reject) => {
-        const referenceName = recipe.name.replace(/ /g, '-') + "_" + recipe.recipeId
-
         const xhr = new XMLHttpRequest();
         xhr.responseType = 'blob';
         try {
@@ -96,48 +90,52 @@ async function getImagefromFirebase(recipe: Recipe) {
                 const blob = xhr.response;
 
                 zipper.loadAsync(blob).then( (zip) => {    
-                    // boolean to determine if we're setting the main Image or instructionImages
-                    // let isMainImage = true
-                    // let counter = 0
-                    const zipContent = Object.keys(zip.files)
-                    const regex = new RegExp(".*\\/(.d*)_.*")
+                    const zipContent = Object.keys(zip.files).filter(file => file.includes(recipe.recipeId))
+                    let instructionImagesSize = zipContent.length-1
 
-                    console.log(zip.files)
                     for (const [index, value] of zipContent.entries()) {
                         const file = value
-                        //console.log(zip.files[file])
-                        //console.log(value)
+                        // console.log(value)
 
-                        zip.files[file].async("blob").then(function (blobFile) {
-                            if (blobFile.size != 0) {
-                                if (file.includes("main_")) {
-                                    recipe.mainImage = blobFile
-                                    //console.log(recipe.mainImage)
+                        zip.files[file].async("base64").then(function (base64file) {
+                            if (base64file != '') {
+                                const imageFile = convertbase64toFile(base64file, file)
+                                if (file.includes("hero_")) {
+                                    const heroImageRef: MainImageRef = new MainImageRef
+
+                                    const nameMatch = value.match(".*\/hero_(.*)")
+                                    if (nameMatch) {
+                                        heroImageRef.imageFileRef = imageFile
+                                        heroImageRef.imageName = nameMatch[1]
+                                        recipe.heroImage = heroImageRef
+                                    }                                    
+                                } else if (file.includes("main_")) {
+                                    const mainImageRef: MainImageRef = new MainImageRef
+
+                                    const nameMatch = value.match(".*\/main_(.*)")
+                                    if (nameMatch) {
+                                        mainImageRef.imageFileRef = imageFile
+                                        mainImageRef.imageName = nameMatch[1]
+                                        recipe.mainImage = mainImageRef
+                                    }   
                                 } else {
-                                    const matches = file.match(".*/(.d*)_.*")
+                                    const matches = file.match(".*/(.d*)_(.*)")
                                     if (matches) {
                                         const capturedIndex: number = Number(matches[1])
-                                        recipe.instructionSection[capturedIndex].image = blobFile
+                                        const name = matches[2]
+                                        const instructionImageRef: InstructionImageRef = new InstructionImageRef
+                                        
+                                        instructionImageRef.imageFileRef = imageFile
+                                        instructionImageRef.imageName = name
+                                        instructionImageRef.index = capturedIndex
+                                        recipe.instructionSection[capturedIndex].image = instructionImageRef
                                     }
                                 }
-                                // if (isMainImage) {
-                                //     recipe.mainImage = blobFile
-                                //     isMainImage = false
-                                // } else {
-                                //     while (!recipe.instructionSection[counter].hasImage) {
-                                //         counter++
-                                //         if (counter >= recipe.instructionSection.length-1) {
-                                //             resolve(recipe)
-                                //         }
-                                //     }
-                                //     if (recipe.instructionSection[counter].hasImage) {
-                                //         recipe.instructionSection[counter].image = blobFile
-                                //         if (index == zipContent.length) {
-                                //             resolve(recipe)
-                                //         }
-                                //     }
-                                //     counter++
-                                // }
+                                instructionImagesSize--
+
+                                if (instructionImagesSize == 0) {
+                                    resolve(recipe)
+                                }
                             }
                         })
                         
@@ -152,8 +150,27 @@ async function getImagefromFirebase(recipe: Recipe) {
     })
 }
 
+function convertbase64toFile(string64: string, fileName: string): File {
+    //console.log(string64)
+    const imageContent = atob(string64);
+    
+    // image details
+    const buffer = new ArrayBuffer(imageContent.length);
+    const view = new Uint8Array(buffer);
+
+    for (let n = 0; n < imageContent.length; n++) {
+      view[n] = imageContent.charCodeAt(n);
+    }
+
+    const imgType = fileName.split(".")[1]
+    const type = 'image/'+imgType;
+
+    const blob = new Blob([buffer], { type });
+    return new File([blob], fileName, { lastModified: new Date().getTime(), type });
+}
+
 const FirebaseConn = {
-    uploadImage, getImage
+        uploadImage, getImage
 }
 
 export default FirebaseConn

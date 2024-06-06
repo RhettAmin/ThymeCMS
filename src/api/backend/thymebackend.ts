@@ -1,8 +1,6 @@
-import { RecipeDTO } from '@/models/recipeDTO'; 
+import { RecipeDTO, IngredientSectionDTO, IngredientDTO, InstructionSectionDTO } from '@/models/recipeDTO'; 
 import { Recipe, IngredientSection, Ingredient, InstructionSection } from '@/models/recipeModel'; 
 import { Response } from '@/models/responseModel'
-import snakecaseKeys from 'snakecase-keys'
-import camelcaseKeys from 'camelcase-keys'
 import Toaster from "@/components/toast";
 import axios from 'axios'
  
@@ -34,8 +32,8 @@ async function doesRecipeExist(hashedId: string) {
     })
 }
 
-async function getRecipe(recipeId: string) {
-    return await new Promise<Recipe>( (resolve, reject) => {
+async function getRecipe(recipeId?: string) {
+    return await new Promise<Recipe[]>( (resolve, reject) => {
         thymeAxios.get('/recipes', {
             params: {
                 recipeId: recipeId
@@ -43,13 +41,17 @@ async function getRecipe(recipeId: string) {
         })
         .then(response => {
             const responseObj: Response = response.data
-            //console.log(responseObj)
 
-            let recipe = new Recipe
-            convertRecipeDTOToRecipe(responseObj.recipe_list[0]).then((recipeObj) => {
-                recipe = recipeObj
-                resolve(recipe)
-            })
+            const recipes: Recipe[] = []
+            for (const [index, value] of responseObj.recipe_list.entries()) {
+                convertRecipeDTOToRecipe(value).then((recipeObj) => {
+                    recipes.push(recipeObj)
+                    if (recipes.length == responseObj.recipe_list.length) {
+                        resolve(recipes)
+                    }
+                })
+            }
+           
         })
         .catch(error => {
             console.log(error)
@@ -58,35 +60,163 @@ async function getRecipe(recipeId: string) {
     })
 }
 
-
-
 async function postRecipe(recipe: Recipe) {
     return await new Promise<void>( (resolve) => {
         console.log("recipe uploading:")
         console.log(recipe)
-        // Setup Interceptor
-        const requestInterceptor = thymeAxios.interceptors.request.use(function (config) {
-            config.data = JSON.stringify(snakecaseKeys(config.data, { deep: true }))
-            return config
-        })
 
-        thymeAxios.post(
-            '/recipes', 
-            recipe
-        )
+        let postingRecipe: RecipeDTO | undefined = undefined
+        convertRecipeToRecipeDTO(recipe).then((response) => {
+            postingRecipe = response
+            console.log(postingRecipe)
+            if (postingRecipe) {
+                thymeAxios.post(
+                    '/recipes', 
+                    postingRecipe
+                )
+                .then(response => {
+                    console.log(response)
+                    Toaster.toastSuccess("Recipe Uploaded!")
+                    resolve()
+                })
+                .catch(error => {
+                    // your action on error success
+                    Toaster.toastError("Error uploading to backend!!")
+                    console.error(error)
+                })
+            }
+        }).catch((error) => {
+            console.log(error)
+        })
+    })
+}
+
+async function updateRecipe(recipe: Recipe) {
+    return await new Promise<void>( (resolve) => {
+        console.log("recipe updating:")
+        console.log(recipe)
+
+        let postingRecipe: RecipeDTO | undefined = undefined
+        convertRecipeToRecipeDTO(recipe).then((response) => {
+            postingRecipe = response
+            console.log(postingRecipe)
+            if (postingRecipe) {
+                thymeAxios.patch(
+                    '/recipes', 
+                    postingRecipe
+                )
+                .then(response => {
+                    console.log(response)
+                    Toaster.toastSuccess("Recipe Uploaded!")
+                    resolve()
+                })
+                .catch(error => {
+                    // your action on error success
+                    Toaster.toastError("Error uploading to backend!!")
+                    console.error(error)
+                })
+            }
+        }).catch((error) => {
+            console.log(error)
+        })
+        
+    })
+}
+
+async function deleteRecipe(idx: string) {
+    return await new Promise<void>((resolve, reject) => {
+        thymeAxios.delete('/recipes', {
+            params: {
+            recipe_id: idx
+            }
+        })
         .then(response => {
-            console.log(response)
-            Toaster.toastSuccess("Recipe Uploaded!")
-            resolve()
+            if (response.status==400) {
+                reject()
+            } else {
+                resolve()
+            }
         })
-        .catch(error => {
-            // your action on error success
-            Toaster.toastError("Error uploading to backend!!")
-            console.error(error)
-        })
+    })
+}
 
-        // remove interceptor
-        axios.interceptors.request.eject(requestInterceptor)
+// ========================= HELPER FUNCTIONS ================================================
+
+async function convertRecipeToRecipeDTO(recipe: Recipe) {
+    return await new Promise<RecipeDTO>((resolve) => {
+        const recipeDTO = new RecipeDTO
+
+        recipeDTO.recipe_id = recipe.recipeId
+        recipeDTO.name = recipe.name
+        recipeDTO.description = recipe.description
+
+        // Serving
+        recipeDTO.serving.amount = recipe.serving.amount
+        recipeDTO.serving.serving_size = recipe.serving.servingSize
+        recipeDTO.serving.total_servings = recipe.serving.totalServings
+
+        recipeDTO.tags = recipe.tags
+        recipeDTO.time_to_plate = recipe.timeToPlate
+        recipeDTO.images = recipe.images
+        recipeDTO.created_date = recipe.createdDate
+        recipeDTO.updated_date = recipe.updatedDate
+
+        const ing_Sections: IngredientSectionDTO[] = []
+        // Ingredient Section
+        recipe.ingredientSection.forEach((section) => {
+            const i_section = new IngredientSectionDTO
+            
+            i_section.section_name = section.sectionName
+
+            section.ingredients.forEach((ing) => {
+                const ingredient = new IngredientDTO
+
+                ingredient.name = ing.name
+                ingredient.measurement = ing.measurement
+                ingredient.quantity = ing.quantity
+                ingredient.type = ing.type
+
+                i_section.ingredients.push(ingredient)
+            })
+
+            ing_Sections.push(i_section)
+        })
+        recipeDTO.ingredient_section = ing_Sections
+
+        const instr_section: InstructionSectionDTO[] = []
+        
+        // Instruction Section
+        recipe.instructionSection.forEach((section) => {
+            const i_section = new InstructionSectionDTO
+            
+            i_section.section_name = section.sectionName
+            const steps: string[] = []
+            section.steps.forEach((step) => {
+                steps.push(step)
+            })
+            i_section.steps = steps
+            instr_section.push(i_section)
+        })
+        recipeDTO.instruction_section = instr_section
+
+        // NutritionFacts
+        recipeDTO.nutrition_facts.calcium = recipe.nutritionFacts.calcium
+        recipeDTO.nutrition_facts.calories = recipe.nutritionFacts.calories
+        recipeDTO.nutrition_facts.carbohydrate = recipe.nutritionFacts.carbohydrate
+        recipeDTO.nutrition_facts.cholesterol = recipe.nutritionFacts.cholesterol
+        recipeDTO.nutrition_facts.fat = recipe.nutritionFacts.fat
+        recipeDTO.nutrition_facts.fibre = recipe.nutritionFacts.fibre
+        recipeDTO.nutrition_facts.iron = recipe.nutritionFacts.iron
+        recipeDTO.nutrition_facts.potassium = recipe.nutritionFacts.potassium
+        recipeDTO.nutrition_facts.protein = recipe.nutritionFacts.protein
+        recipeDTO.nutrition_facts.saturated_fat = recipe.nutritionFacts.saturatedFat
+        recipeDTO.nutrition_facts.sodium = recipe.nutritionFacts.sodium
+        recipeDTO.nutrition_facts.sugars = recipe.nutritionFacts.sugars
+        recipeDTO.nutrition_facts.trans_fat = recipe.nutritionFacts.transFat
+        recipeDTO.nutrition_facts.vitamin_d = recipe.nutritionFacts.vitaminD
+
+        resolve(recipeDTO)
+
     })
 }
 
@@ -110,40 +240,44 @@ async function convertRecipeDTOToRecipe(recipeDTO: RecipeDTO) {
 
         const ingSections: IngredientSection[] = []
         // Ingredient Section
-        recipeDTO.ingredient_section.forEach((section) => {
-            const iSection = new IngredientSection
-            
-            iSection.sectionName = section.section_name
+        if (recipeDTO.ingredient_section) {
+            recipeDTO.ingredient_section.forEach((section) => {
+                const iSection = new IngredientSection
+                
+                iSection.sectionName = section.section_name
 
-            section.ingredients.forEach((ing) => {
-                const ingredient = new Ingredient
+                section.ingredients.forEach((ing) => {
+                    const ingredient = new Ingredient
 
-                ingredient.name = ing.name
-                ingredient.measurement = ing.measurement
-                ingredient.quantity = ing.quantity
+                    ingredient.name = ing.name
+                    ingredient.measurement = ing.measurement
+                    ingredient.quantity = ing.quantity
+                    ingredient.type = ing.type
 
-                iSection.ingredients.push(ingredient)
+                    iSection.ingredients.push(ingredient)
+                })
+
+                ingSections.push(iSection)
             })
-
-            ingSections.push(iSection)
-        })
-        recipe.ingredientSection = ingSections
+            recipe.ingredientSection = ingSections
+        }
 
         const instrSection: InstructionSection[] = []
-        
         // Instruction Section
-        recipeDTO.instruction_section.forEach((section) => {
-            const iSection = new InstructionSection
-            
-            iSection.sectionName = section.section_name
-            const steps: string[] = []
-            section.steps.forEach((step) => {
-                steps.push(step)
+        if (recipeDTO.instruction_section) {
+            recipeDTO.instruction_section.forEach((section) => {
+                const iSection = new InstructionSection
+                
+                iSection.sectionName = section.section_name
+                const steps: string[] = []
+                section.steps.forEach((step) => {
+                    steps.push(step)
+                })
+                iSection.steps = steps
+                instrSection.push(iSection)
             })
-
-            instrSection.push(iSection)
-        })
-        recipe.instructionSection = instrSection
+            recipe.instructionSection = instrSection
+        }
 
         // NutritionFacts
         recipe.nutritionFacts.calcium = recipeDTO.nutrition_facts.calcium
@@ -167,7 +301,7 @@ async function convertRecipeDTOToRecipe(recipeDTO: RecipeDTO) {
 }
 
 const ThymeBackendAPI = {
-    doesRecipeExist, postRecipe, getRecipe
+    doesRecipeExist, postRecipe, getRecipe, deleteRecipe, updateRecipe
 }
 
 export default ThymeBackendAPI
