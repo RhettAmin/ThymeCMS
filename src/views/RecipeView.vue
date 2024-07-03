@@ -44,7 +44,9 @@
             </div>
         </div>
         
-        <div class="flex flex-row pl-2">
+        <!--============= Main/Hero Images ===================-->
+        <div class="flex flex-col pl-2"> 
+          <div class="flex flex-row">
             <div class="flex flex-col space-y-2">
                 <div class="flex flex-col">
                     <label class="label font-medium">Main Image</label>
@@ -61,6 +63,13 @@
                 </div>
                 <div id="preview">
                     <img class="pb-3" v-if="recipe.heroImage?.imageFileRef" :src="setImage(recipe.heroImage.imageFileRef)" width="200"/>
+                </div>
+            </div>
+          </div>
+            <div class="flex flex-col space-y-2">
+                <div class="flex flex-col">
+                    <label class="label font-medium">Alt-Text</label>
+                    <input class="text" type="text" v-model="recipe.metadata.mainImageAltText">
                 </div>
             </div>
         </div>
@@ -162,8 +171,12 @@
                 </div>
                 
               </div> 
-              <div id="preview">
-                <img class="pb-3" v-if="instructionSection.image?.imageFileRef" :src="setImage(instructionSection.image.imageFileRef)" width="200"/>
+              <div id="preview flex flex-col" v-if="instructionSection.image?.imageFileRef">
+                <img class="pb-3" :src="setImage(instructionSection.image.imageFileRef)" width="200"/>
+                <div class="flex flex-col">
+                    <label>Alt-Text</label>
+                    <input type="text" v-model="instructionSection.metadata.altText"/>
+                </div>
               </div>
             </div>
 
@@ -216,7 +229,7 @@
 
 
 <script lang="ts">
-    import { Recipe, Serving, IngredientSection, Ingredient, InstructionSection, NutritionFacts, MainImageRef, InstructionImageRef } from '@/models/recipeModel';
+    import { Recipe, Serving, Metadata, IngredientSection, Ingredient, InstructionSection, NutritionFacts, MainImageRef, InstructionImageRef } from '@/models/recipeModel';
     import ThymeBackendAPI from '@/api/backend/thymebackend';
     import FirebaseConn from '@/api/firebase/firebaseConnection';
     import NutritionFactsLabel from '@/components/NutritionFactsLabel.vue';
@@ -250,6 +263,7 @@
                     images: '',
                     heroImage: undefined,
                     mainImage: undefined,
+                    metadata: new Metadata,
                     tags: [] as string[],
                     serving: new Serving,
                     timeToPlate: 0,
@@ -265,9 +279,6 @@
             changeMainImage(event: any) {
                 const file = event.target.files[0];
                 this.recipe.mainImage!!.imageFileRef = file
-                // this.mainImageRef.imageFileRef = file
-                // // set Reference img display after file upload
-                // this.mainImageRef.imageURLPreview = URL.createObjectURL(file)
             },
 
             changeHeroImage(event: any) {
@@ -276,9 +287,6 @@
                   this.recipe.heroImage = new MainImageRef
                 }
                 this.recipe.heroImage!!.imageFileRef = file
-                // // set Reference img display after file upload
-                // this.heroImageRef.imageURLPreview = URL.createObjectURL(file)
-                // this.recipe.heroImage = file
             },
 
             setHeroImage(imgString: File): any {
@@ -298,7 +306,6 @@
                 let value = e.target.value
                 this.recipe.tags = value.substring(0, value.length).split(", ");
             },
-
 
             // === Ingredients === 
             addIngredientSection() {
@@ -323,9 +330,6 @@
                 // Add an imageRef to the list of Image Refs
                 let imageRef = new InstructionImageRef
                 imageRef.index = this.recipe.instructionSection.length
-                // instructionSection.image = imageRef
-                // this.listOfInstructionImages.push(imageRef)
-                // Add instructionSection to the list
                 this.recipe.instructionSection.push(instructionSection)
             },
 

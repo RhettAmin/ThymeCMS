@@ -150,6 +150,9 @@ async function convertRecipeToRecipeDTO(recipe: Recipe) {
         recipeDTO.name = recipe.name
         recipeDTO.description = recipe.description
 
+        // Metadata
+        recipeDTO.metadata.main_image_alt_text = recipe.metadata.mainImageAltText
+
         // Serving
         recipeDTO.serving.amount = recipe.serving.amount
         recipeDTO.serving.serving_size = recipe.serving.servingSize
@@ -190,6 +193,8 @@ async function convertRecipeToRecipeDTO(recipe: Recipe) {
             const i_section = new InstructionSectionDTO
             
             i_section.section_name = section.sectionName
+            i_section.metadata.alt_text = section.metadata.altText
+            
             const steps: string[] = []
             section.steps.forEach((step) => {
                 steps.push(step)
@@ -227,6 +232,10 @@ async function convertRecipeDTOToRecipe(recipeDTO: RecipeDTO) {
         recipe.recipeId = recipeDTO.recipe_id
         recipe.name = recipeDTO.name
         recipe.description = recipeDTO.description
+
+        // Metadata
+        recipe.metadata.mainImageAltText = recipeDTO.metadata.main_image_alt_text
+
         // Serving
         recipe.serving.amount = recipeDTO.serving.amount
         recipe.serving.servingSize = recipeDTO.serving.serving_size
@@ -269,6 +278,8 @@ async function convertRecipeDTOToRecipe(recipeDTO: RecipeDTO) {
                 const iSection = new InstructionSection
                 
                 iSection.sectionName = section.section_name
+                iSection.metadata.altText = section.metadata.alt_text
+
                 const steps: string[] = []
                 section.steps.forEach((step) => {
                     steps.push(step)

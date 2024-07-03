@@ -7,12 +7,17 @@ class Recipe {
     timeToPlate: number = 0;
     heroImage: MainImageRef | undefined = undefined;
     mainImage: MainImageRef | undefined = undefined;
+    metadata: Metadata = new Metadata;
     images: string = '';
     createdDate: string = '';
     updatedDate: string = '';
     ingredientSection: IngredientSection[] = [];
     instructionSection: InstructionSection[] = [];
     nutritionFacts: NutritionFacts = new NutritionFacts;
+}
+
+class Metadata {
+    mainImageAltText: string = ''
 }
 
 class Serving {
@@ -36,7 +41,12 @@ class Ingredient {
 class InstructionSection {
     sectionName: string = '';
     image: InstructionImageRef | undefined = undefined;
+    metadata: InstructionImageMetadata = new InstructionImageMetadata;
     steps: string[] = [];
+}
+
+class InstructionImageMetadata {
+    altText: string = ''
 }
 
 class NutritionFacts {
@@ -117,4 +127,4 @@ class InstructionImageRef extends ImageRef {
     index = 0
 }
 
-export { Recipe, Serving, IngredientSection, Ingredient, InstructionSection, NutritionFacts, MainImageRef, InstructionImageRef }
+export { Recipe, Serving, Metadata, IngredientSection, Ingredient, InstructionSection, NutritionFacts, MainImageRef, InstructionImageRef }
