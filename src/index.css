@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+@theme {
+  --color-thymeBackground: #d8eeda; /* Leaf Green */
+  --color-blackSoft: #808080; /* Gray */
+
+  --color-thymeNav: #49c846;  /* Green */ 
+  --color-thymeCard: #edf7ee; /* Seafoam */ 
+  --color-thymeProgress: #49c846; /* Deep Green */ 
+  --color-thymeProgressBackground: #bbedba; /* Pale Green */ 
+  --color-navActiveHighlight: #9e2e2e; /* Red */ 
+  --color-navHighlight: 	#6b2e2e; /* Wine */ 
+}
