@@ -3,6 +3,7 @@ export class Ingredient {
     quantity: number = 0
     measurement: string = ""
     type: number = 0
+    nutrients = new NutritionFacts()
 
     constructor(name: string, quantity: number, measurement: string, type: number) {
         this.name = name
@@ -17,25 +18,19 @@ export class IngredientSectionModel {
     ingredients: Ingredient[] = []
 
     constructor(sectionName?: string, ingredients?: Ingredient[]) {
-        this.sectionName = sectionName || ''
+        this.sectionName = sectionName || ""
         this.ingredients = ingredients || []
     }
 }
 
-export interface InstructionImageMetadata {
-    altText: string
+export class InstructionImageMetadata {
+    altText: string = ""
 }
 
-// interface InstructionImageRef {
-//     instructionSection: string
-//     index: number
-// }
-
-export interface InstructionSection {
-    sectionName: string
-    image: string
-    metadata: InstructionImageMetadata
-    steps: { text: string }[]
+export class InstructionSectionModel {
+    sectionName: string = ""
+    image: string = ""
+    steps: string[] = []
 }
 
 export class NutritionFacts {
@@ -66,7 +61,7 @@ export class RecipeModel {
     timeToPlate: number = 0
     description: string = ""
     ingredientSections: IngredientSectionModel[] = []
-    instructionSections: InstructionSection[] = []
+    instructionSections: InstructionSectionModel[] = []
     nutritionFacts: NutritionFacts = new NutritionFacts()
 }
 

@@ -1,6 +1,6 @@
-import { Md5 } from 'ts-md5';
+import { Md5 } from 'ts-md5'
 import axios from 'axios'
-import { RecipeModel } from '../../models/recipeModels';
+import { RecipeModel } from '../../models/recipeModels'
 import { RecipeDTO } from '../../models/recipeMongo'
 
 const thymeAxios = axios.create({
@@ -28,12 +28,12 @@ const doesRecipeExist = async (id: string) => {
         .catch(error => {
             console.log(error)
             reject(error)
-        }); 
+        }) 
     })
 }
 
 const postRecipe = async (recipe: RecipeModel) => {
-    return await new Promise<void>( (resolve) => {
+    return await new Promise<void>( (resolve, reject) => {
         console.log("recipe uploading:")
         console.log(recipe)
 
@@ -48,17 +48,16 @@ const postRecipe = async (recipe: RecipeModel) => {
                 )
                 .then(response => {
                     console.log(response)
-                    // Toaster.toastSuccess("Recipe Uploaded!")
                     resolve()
                 })
                 .catch(error => {
                     // your action on error success
-                    // Toaster.toastError("Error uploading to backend!!")
                     console.error(error)
                 })
             }
         }).catch((error) => {
             console.log(error)
+            reject(error)
         })
     })
 }

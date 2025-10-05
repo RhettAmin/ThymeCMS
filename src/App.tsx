@@ -1,9 +1,9 @@
 
-import Navigation from './sidenav/navigation';
-import { Routes, Route } from 'react-router-dom';
+import Navigation from './sidenav/navigation'
+import { Routes, Route } from 'react-router-dom'
 import { lazy, Suspense } from 'react'
-const ViewRecipes = lazy(() => import('./pages/viewRecipes'));
-const AddRecipe = lazy(() => import('./pages/addRecipe'));
+const ViewRecipes = lazy(() => import('./pages/viewRecipes'))
+const AddRecipe = lazy(() => import('./pages/addRecipe'))
 
 function App() {
 

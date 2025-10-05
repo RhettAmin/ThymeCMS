@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import axios from 'axios'
-import { IngredientSectionModel, NutritionFacts } from '../../models/recipeModels';
+import { IngredientSectionModel, NutritionFacts } from '../../models/recipeModels'
 
 type returnTupleType = [nutritionFacts: NutritionFacts, errors: string[]]
 
@@ -54,7 +54,7 @@ const getNaturalLangNutrition = async(ingredientSections: IngredientSectionModel
                 if (foods.length != ingredientSize) {
                     ingredientSections.forEach(section => {
                         section.ingredients.forEach(ingredient => {
-                            const checkFoodExistence = foods.some( (food: { food_name: string; }) => 
+                            const checkFoodExistence = foods.some( (food: { food_name: string }) => 
                                 food.food_name.localeCompare(ingredient.name, 'en', {sensitivity: 'base'}) == 0 )
                             if (checkFoodExistence == false) {
                                 missingIngredients.push(ingredient.name)
@@ -64,31 +64,31 @@ const getNaturalLangNutrition = async(ingredientSections: IngredientSectionModel
                 }
 
                 foods.forEach((food: any) => {
-                    nutritionFacts.calories += Math.round(food.nf_calories);
-                    nutritionFacts.fat += Math.round(food.nf_total_fat);
-                    nutritionFacts.saturatedFat += Math.round(food.nf_saturated_fat);
-                    nutritionFacts.carbohydrate += Math.round(food.nf_total_carbohydrate);
-                    nutritionFacts.fibre += Math.round(food.nf_dietary_fiber);
-                    nutritionFacts.sugars += Math.round(food.nf_sugars);
-                    nutritionFacts.protein += Math.round(food.nf_protein);
-                    nutritionFacts.cholesterol += Math.round(food.nf_cholesterol);
-                    nutritionFacts.sodium += Math.round(food.nf_sodium);
+                    nutritionFacts.calories += Math.round(food.nf_calories)
+                    nutritionFacts.fat += Math.round(food.nf_total_fat)
+                    nutritionFacts.saturatedFat += Math.round(food.nf_saturated_fat)
+                    nutritionFacts.carbohydrate += Math.round(food.nf_total_carbohydrate)
+                    nutritionFacts.fibre += Math.round(food.nf_dietary_fiber)
+                    nutritionFacts.sugars += Math.round(food.nf_sugars)
+                    nutritionFacts.protein += Math.round(food.nf_protein)
+                    nutritionFacts.cholesterol += Math.round(food.nf_cholesterol)
+                    nutritionFacts.sodium += Math.round(food.nf_sodium)
 
                     // Vitamin D (324)
                     nutritionFacts.vitamind += Math.round(findOrZero(food.full_nutrients.find((item: any) => item.attr_id == 324)) * 0.025)
                     // Iron (303)
-                    nutritionFacts.iron += Math.round(findOrZero(food.full_nutrients.find((item: any) => item.attr_id == 303)));
+                    nutritionFacts.iron += Math.round(findOrZero(food.full_nutrients.find((item: any) => item.attr_id == 303)))
                     // Potassium (306)
-                    nutritionFacts.potassium += Math.round(findOrZero(food.full_nutrients.find((item: any) => item.attr_id == 306)));
+                    nutritionFacts.potassium += Math.round(findOrZero(food.full_nutrients.find((item: any) => item.attr_id == 306)))
                     // Calcium (301)
-                    nutritionFacts.calcium += Math.round(findOrZero(food.full_nutrients.find((item: any) => item.attr_id == 301)));
+                    nutritionFacts.calcium += Math.round(findOrZero(food.full_nutrients.find((item: any) => item.attr_id == 301)))
                 })
 
                 const returnTuple: returnTupleType = [nutritionFacts, missingIngredients]
                 resolve(returnTuple)
             })
             .catch(err => {
-                console.error(err);
+                console.error(err)
             })
 
         }

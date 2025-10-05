@@ -1,64 +1,22 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { NutritionFacts } from '../../models/recipeModels';
-import { NutritionDailyValues } from './dailyValues';
-import NutritonixAPI from '../../apis/nutrionix/api';
-import { useState, useEffect, useCallback } from 'react';
-
+import { calculateDV, MainNutritionValues, NutritionDailyValues, TopVitamins } from './utils'
+import { NutritionFacts } from '../../models/recipeModels'
+import { useState, useEffect, useCallback } from 'react'
 
 interface NutritionLabelInput {
-    ingredientSections: IngredientSection[], 
+    nutritionFacts: NutritionFacts
     totalServings: number, 
     servingSize: number, 
-    servingForm: string,
-    errors: (value: string[]) => void
+    servingForm: string
 }
 
-const NutritionLabel = ({ingredientSections, totalServings, servingSize, servingForm, errors}: NutritionLabelInput) => {
+const NutritionLabel = ({nutritionFacts, totalServings, servingSize, servingForm}: NutritionLabelInput) => {
 
-    // const [localIngredientSection, setLocalIngredientSection] = useState<IngredientSection[]>([])
-    const [localTotalServings, setLocalTotalServings] = useState<number>(0)
-    const [localServingSize, setLocalServingSize] = useState<number>(0)
-    const [localServingForm, setLocalServingForm] = useState<string>("")
     const [dailyValues] = useState<NutritionDailyValues>(new NutritionDailyValues())
-    const [mainNutritionValues] = useState<string[]>([
-        "fat", "saturatedFat", "transFat", "carbohydrate", "fibre", 
-        "sugars", "protein", "cholesterol", "sodium"
-    ])
-    const [topVitamins] = useState<string[]>(["vitamind", "iron", "potassium", "calcium"])
-    const [nutritionFacts, setNutritionFacts] = useState<NutritionFacts>(new NutritionFacts())
     const [nutritionFactsPerServing, setNutritionFactsPerServing] = useState<NutritionFacts>(new NutritionFacts())
 
-    // type returnTupleType = [nutritionFacts: NutritionFacts, errors: string[]]
-
     const calculatePerServing = useCallback((value: number): number => {
-        // console.log("CALCULATION: " ,  value * (localServingSize / localTotalServings))
-        return value * (localServingSize / localTotalServings)
-    }, [localServingSize, localTotalServings])
-
-    const setNutritionFactsLabel = (facts: NutritionFacts) => {
-        setNutritionFacts(() => facts );
-        // setNutritionFacts((prev) => {
-        //     const newValue = prev
-
-        //     newValue.calories = facts.calories
-        //     newValue.fat = facts.fat
-        //     newValue.saturatedFat = facts.saturatedFat
-        //     newValue.transFat = facts.transFat
-        //     newValue.carbohydrate = facts.carbohydrate
-        //     newValue.fibre = facts.fibre
-        //     newValue.sugars = facts.sugars
-        //     newValue.protein = facts.protein
-        //     newValue.cholesterol = facts.cholesterol
-        //     newValue.sodium = facts.sodium
-        //     newValue.vitaminD = facts.vitaminD
-        //     newValue.iron = facts.iron
-        //     newValue.potassium = facts.potassium
-        //     newValue.calcium = facts.calcium
-
-        //     return prev
-        // })
-    }
-
+        return value * (servingSize / totalServings)
+    }, [servingSize, totalServings])
 
     const setNutritionPerServing = useCallback((facts: NutritionFacts) => {
         setNutritionFactsPerServing(() => ({
@@ -76,71 +34,31 @@ const NutritionLabel = ({ingredientSections, totalServings, servingSize, serving
             iron: calculatePerServing(facts.iron),
             potassium: calculatePerServing(facts.potassium),
             calcium: calculatePerServing(facts.calcium),
-            getValue: NutritionFacts.prototype.getValue
-        }));
-    },[calculatePerServing])
-
-    // const updateFactsTable = useCallback((ingredientSections: IngredientSection[]) => {
-    //     console.log("updating Table...")
-
-    //     const nF = new NutritionFacts()
-    //     nF.calories = 246
-    //     nF.fat = 50
-    //     nF.saturatedFat = 51
-    //     nF.transFat = 52
-    //     nF.carbohydrate = 32
-    //     nF.fibre = 42
-    //     nF.sugars = 63
-    //     nF.protein = 84
-    //     nF.cholesterol = 99
-    //     nF.sodium = 321
-    //     nF.vitamind = 22
-    //     nF.iron = 23
-    //     nF.potassium = 24
-    //     nF.calcium = 25
-
-    //     setNutritionFactsLabel(nF)
-    //     setNutritionPerServing(nF)
-
-    //     // NutritonixAPI.getNaturalLangNutrition(ingredientSections).then( (responseTuple) => {
-    //     //     console.log("RESPONSE TUPLE: ", responseTuple[0])
-    //     //     setNutritionFactsLabel(responseTuple[0])
-    //     //     setNutritionPerServing(responseTuple[0])
-    //     //     errors(responseTuple[1])
-    //     // })
-    // }, [errors, setNutritionPerServing])
+        }))
+    }, [calculatePerServing])
 
     useEffect(() => {
-        console.log("EFFECT INPUTS: ", ingredientSections, servingForm, servingSize, totalServings)
-        // setLocalIngredientSection(ingredientSections)
-        setLocalTotalServings(totalServings)
-        setLocalServingSize(servingSize)
-        setLocalServingForm(servingForm)
-
-        // updateFactsTable(ingredientSections)
-    }, [ingredientSections, servingForm, servingSize, totalServings])
-
-    const setNameDisplayValue = (value: string) => {
-        if (value == 'saturatedFat') {
-            return <label className="pl-4 capitalize">saturated fat</label>
-        } else if (value == 'transFat') {
-            return <label className="pl-4 capitalize">trans fat</label>
-        } else if (value == 'fibre' || value =='sugars') {
-            return <label className="pl-4 capitalize">{value}</label>
-        } else {
-            return <label className="font-semibold capitalize">{value}</label>
+        if (totalServings > 0) {
+            setNutritionPerServing(nutritionFacts)
         }
+    }, [totalServings, nutritionFacts, setNutritionPerServing])
+    
+    const setNameDisplayValue = (value: string) => {
+        if (value == 'saturatedFat' || value == 'transFat' || value == 'fibre' || value =='sugars') {
+            return <label className="pl-4 capitalize">{value}</label>
+        }
+        return <label className="font-semibold capitalize">{value}</label>
     }
 
     const displayVitamins = (nutrient: string, value: number) => {
         if (nutrient=='transFat'  || nutrient=='protein' || nutrient=='cholesterol' || nutrient=='sugars') {
             return ''
         } 
-        return dailyValues.calculateDV(nutrient, value) +'%'
+        return calculateDV(dailyValues[nutrient as keyof NutritionDailyValues], value) +'%'
     }
 
     return (
-        <div className="border border-black box-border p-1">
+        <div className="bg-white border border-black box-border p-1">
            
             {/* Main Container */}
             <div>
@@ -149,8 +67,8 @@ const NutritionLabel = ({ingredientSections, totalServings, servingSize, serving
                     <label className="font-bold text-[30px] flex justify-center">Nutrition Facts</label>
                     <div className="bg-black h-[1px]"/>
                     <div className="flex flex-row justify-center">
-                        <label className="text-m flex justify-end pr-1">Total Servings: { localTotalServings } /</label>
-                        <label className="text-m flex justify-end">Serving size: { localServingSize + " " + localServingForm }</label>
+                        <label className="text-m flex justify-end pr-1">Total Servings: { totalServings } /</label>
+                        <label className="text-m flex justify-end">Serving size: { servingSize + " " + servingForm }</label>
                     </div>
                     <div className="bg-black h-[10px]"/>
                 </div>
@@ -169,7 +87,7 @@ const NutritionLabel = ({ingredientSections, totalServings, servingSize, serving
                             <div className="h-6"/>
                             <div className="divide-y divide-black">
                                 {
-                                    mainNutritionValues.map((value, idx) => (
+                                    MainNutritionValues.map((value, idx) => (
                                         <div key={idx}>
                                             {setNameDisplayValue(value)}
                                         </div>
@@ -183,7 +101,7 @@ const NutritionLabel = ({ingredientSections, totalServings, servingSize, serving
                         <div className="">
                             <div className="divide-y divide-black">
                                 {
-                                    topVitamins.map((value, idx) => (
+                                    TopVitamins.map((value, idx) => (
                                         <div key={idx}>
                                             <label className="capitalize">
                                                 {
@@ -216,20 +134,21 @@ const NutritionLabel = ({ingredientSections, totalServings, servingSize, serving
 
                             <div className="divide-y divide-black"> 
                                 {
-                                    mainNutritionValues.map((value, idx) => (
+                                    MainNutritionValues.map((value, idx) => (
                                         <div key={idx}>
                                            <div className="flex flex-row justify-between"> 
                                                 <div>
                                                     <label>
                                                         { 
-                                                            nutritionFactsPerServing.getValue(value).toFixed(1) + (value == 'cholesterol' || value=='sodium' ? 'mg' : 'g')
+                                                            (nutritionFactsPerServing[value as keyof NutritionFacts]).toFixed(1) + 
+                                                                (value == 'cholesterol' || value=='sodium' ? 'mg' : 'g')
                                                         }
                                                     </label>
                                                 </div>
                                                 <div>
                                                     <label>
                                                         {
-                                                            displayVitamins(value, nutritionFactsPerServing.getValue(value))
+                                                            displayVitamins(value, (nutritionFactsPerServing[value as keyof NutritionFacts]))
                                                         }
                                                     </label>
                                                 </div>
@@ -244,18 +163,23 @@ const NutritionLabel = ({ingredientSections, totalServings, servingSize, serving
 
                         <div className="divide-y divide-black">
                             {
-                                topVitamins.map((value, idx) => (
+                                TopVitamins.map((value, idx) => (
                                     <div key={idx}>
                                         <div className="flex flex-row justify-between"> 
                                             <div> 
                                                 <label>
                                                     { 
-                                                       nutritionFactsPerServing.getValue(value).toFixed(1) + (value == 'vitamind' ? 'mcg' : 'mg')
+                                                       (nutritionFactsPerServing[value as keyof NutritionFacts]).toFixed(1) + 
+                                                       (value == 'vitamind' ? 'mcg' : 'mg')
                                                     }
                                                 </label>
                                             </div>
                                             <div>
-                                                <label>{ dailyValues.calculateDV(value, nutritionFactsPerServing.getValue(value)) }%</label>
+                                                <label>{ 
+                                                    calculateDV(dailyValues[value as keyof NutritionDailyValues], 
+                                                        (nutritionFactsPerServing[value as keyof NutritionFacts])) 
+                                                        }%
+                                                </label>
                                             </div>
                                         </div>
                                     </div>
@@ -268,7 +192,7 @@ const NutritionLabel = ({ingredientSections, totalServings, servingSize, serving
                      <div className="px-1">
                         <div className="font-bold flex flex-col place-items-end"> 
                             <label className="text-xl">Total</label>
-                            <label className="text-2xl">{ nutritionFacts.calories }</label>
+                            <label className="text-2xl">{ Math.round(nutritionFacts.calories) }</label>
                         </div>
 
                         <div className="bg-black h-[5px]"/>
@@ -280,20 +204,21 @@ const NutritionLabel = ({ingredientSections, totalServings, servingSize, serving
 
                             <div className="divide-y divide-black">
                                 {
-                                    mainNutritionValues.map((value, idx) => (
+                                    MainNutritionValues.map((value, idx) => (
                                         <div key={idx}>
                                            <div className="flex flex-row justify-between"> 
                                                 <div>
                                                     <label>
                                                         { 
-                                                            nutritionFacts.getValue(value).toFixed(1) + (value == 'cholesterol' || value=='sodium' ? 'mg' : 'g')
+                                                            (nutritionFacts[value as keyof NutritionFacts]).toFixed(1) + 
+                                                            (value == 'cholesterol' || value=='sodium' ? 'mg' : 'g')
                                                         }
                                                     </label>
                                                 </div>
                                                 <div>
                                                     <label>
                                                         {
-                                                            displayVitamins(value, nutritionFacts.getValue(value))
+                                                            displayVitamins(value, (nutritionFacts[value as keyof NutritionFacts]))
                                                         }
                                                     </label>
                                                 </div>
@@ -308,18 +233,23 @@ const NutritionLabel = ({ingredientSections, totalServings, servingSize, serving
 
                         <div className="divide-y divide-black">
                             {
-                                topVitamins.map((value, idx) => (
+                                TopVitamins.map((value, idx) => (
                                     <div key={idx}>
                                         <div className="flex flex-row justify-between"> 
                                             <div> 
                                                 <label>
                                                     { 
-                                                       nutritionFacts.getValue(value).toFixed(1) + (value == 'vitamind' ? 'mcg' : 'mg')
+                                                       (nutritionFactsPerServing[value as keyof NutritionFacts]).toFixed(1) + 
+                                                       (value == 'vitamind' ? 'mcg' : 'mg')
                                                     }
                                                 </label>
                                             </div>
                                             <div>
-                                                <label>{ dailyValues.calculateDV(value, nutritionFacts.getValue(value)) }%</label>
+                                                <label>{ 
+                                                    calculateDV(dailyValues[value as keyof NutritionDailyValues], 
+                                                    nutritionFactsPerServing[value as keyof NutritionFacts]) 
+                                                    }%
+                                                </label>
                                             </div>
                                         </div>
                                     </div>
