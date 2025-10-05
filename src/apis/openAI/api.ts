@@ -1,5 +1,4 @@
-import { nutritionFactsResponse } from "@/models/openAI"
-import { IngredientSectionModel } from "@/models/recipeModels"
+import { Ingredient, IngredientSectionModel } from "@/models/recipeModels"
 import OpenAI from "openai"
 
 const client = new OpenAI({
@@ -8,55 +7,17 @@ const client = new OpenAI({
 })
 
 const getTotalNutritionFacts = async (ingredientList: IngredientSectionModel[]) => {
-    return await new Promise<nutritionFactsResponse>( (resolve, reject) => {
-
+    return await new Promise<Ingredient[]>( (resolve, reject) => {
+        const timeStart = new Date().getTime()
         const prompt = `
-            IngredientList:
+            System: Return ONLY JSON. No prose. 
+            User: 
+            Given ingredients with amount_g and nutrients_per_100g, scale each ingredient. 
+            Round to 2 decimals. 
+            Respond: 
+            [{"name":"...","quantity":"...", "measurement":"...","type":"...","nutrients":{"calories":0,"fat":0,"saturatedFat":0,"transFat":0,"carbohydrate":0,"fibre":0,"sugars":0,"protein":0,"cholesterol":0,"sodium":0,"vitamind":0,"iron":0,"potassium":0,"calcium":0}}]
+            ingredients=
             ${JSON.stringify(ingredientList, null, 2)}
-
-            class Ingredient {
-                name: string
-                quantity: number
-                measurement: string
-                type: number
-                nutrients = new NutritionFacts()
-            }
-
-            class NutritionFacts {
-                calories: number
-                fat: number
-                saturatedFat: number
-                transFat: number
-                carbohydrate: number
-                fibre: number
-                sugars: number
-                protein: number
-                cholesterol: number
-                sodium: number
-                vitamind: number
-                iron: number
-                potassium: number
-                calcium: number
-            }
-
-            I have a list of ingredients that I have given you. 
-            Calculate the total amount for each field in the NutritionFacts class from each ingredient in the list. 
-            Round each number to 2 decimal points.
-            Each ingredient in the list has it's nutrition information listed per 100g. 
-            You will need to calculate the actual value by taking the quantity and measurement from the ingredient and deriving the nutrition information for that amount. 
-            Provide your response in json format returning the NutritionFacts of the total from all ingredients 
-            as well as a list of ingredients but where it's nutrition facts have the correct values based on the quantity and measurement
-
-            If there is any issue return with the error or issue in the quotes:
-            {
-                "error": "..."
-            }
-
-            your response should be structured like this:
-            {
-                "nutritionFacts: { ... },
-                "ingredients": [...]
-            }
         `
         console.log("prompt: ", prompt, " list: ", ingredientList)
         client.responses.create({
@@ -64,11 +25,9 @@ const getTotalNutritionFacts = async (ingredientList: IngredientSectionModel[]) 
             input: prompt
         })
         .then(response => {
-            console.log(response)
-            if (JSON.parse(response.output_text)["error"])
-                reject(`Error: ${JSON.parse(response.output_text)["error"]}`)
+            console.log("Response received in: ", ((new Date().getTime() - timeStart)/1000), JSON.parse(response.output_text))
 
-            const responseObj: nutritionFactsResponse = JSON.parse(response.output_text)
+            const responseObj: Ingredient[] = JSON.parse(response.output_text)
             
             resolve(responseObj)
         })

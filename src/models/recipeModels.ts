@@ -60,6 +60,8 @@ export class RecipeModel {
     tags: string[] = []
     timeToPlate: number = 0
     description: string = ""
+    createdDate: string = ""
+    updatedDate: string = ""
     ingredientSections: IngredientSectionModel[] = []
     instructionSections: InstructionSectionModel[] = []
     nutritionFacts: NutritionFacts = new NutritionFacts()

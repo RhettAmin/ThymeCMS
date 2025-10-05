@@ -1,12 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { RecipeModel, IngredientSectionModel, InstructionSectionModel, NutritionFacts } from "../models/recipeModels"
+import { RecipeModel, IngredientSectionModel, InstructionSectionModel, NutritionFacts, Ingredient } from "../models/recipeModels"
 import { IngredientSectionControls } from "./utils"
 import InstructionSectionList from "./InstructionSectionList"
 import NutritionLabel from "./nutritionLabel/nutritionLabel"
 import IngredientSectionList from "./IngredientSectionList"
-import { nutritionFactsResponse } from "@/models/openAI"
 import OPEN_AI_API from "@/apis/openAI/api"
+import BackendAPI from "@/apis/backend/api"
 import { useState } from "react"
+import toast, { Toaster } from "react-hot-toast"
 
 const AddRecipe = () => {
     // Main Recipe
@@ -22,8 +23,6 @@ const AddRecipe = () => {
     const [ingredientSectionControlsList, setIngredientSectionControlsList] = useState<IngredientSectionControls[]>(
         [{searchValue: "", lastSearchedValue:"", ingredients:[], micronutrientDisplay: [], page: 1}]
     )
-    // const [sectionSearchResultList, setSectionSearchResultList] = useState<SectionSearchResultType[]>([])
-    // const [lastSearchedValue, setLastSearchedValue] = useState<string>("")
 
     // Calculate Loading bar
     const [displayNFLoading, setDisplayNFLoading] = useState<boolean>(false)
@@ -32,7 +31,7 @@ const AddRecipe = () => {
     const updateRecipe = (key: string, value: any) => {
         setMainRecipe(prev => ({
             ...prev,
-            [key]: value
+            [key]: key === "tags" ? value.split(",").trim() : value
         }))
     }
 
@@ -58,21 +57,39 @@ const AddRecipe = () => {
         }))
     }
 
+    const roundVals = (num: number) => Math.round(num * 100) / 100
     const calculateNutrionInformation = () => {
         setDisplayNFLoading(true)
         setDisplayNFError("")
         OPEN_AI_API.getTotalNutritionFacts(mainRecipe.ingredientSections)
-        .then((response: nutritionFactsResponse) => {
+        .then((response: Ingredient[]) => {
             setDisplayNFLoading(false)
+
+            const totalNutritionFacts: NutritionFacts = response.reduce((acc, ingredient) => ({
+                calories: roundVals(acc.calories + ingredient.nutrients.calories),
+                fat: roundVals(acc.fat + ingredient.nutrients.fat),
+                saturatedFat: roundVals(acc.saturatedFat + ingredient.nutrients.saturatedFat),
+                transFat: roundVals(acc.transFat + ingredient.nutrients.transFat),
+                carbohydrate: roundVals(acc.carbohydrate + ingredient.nutrients.carbohydrate),
+                fibre: roundVals(acc.fibre + ingredient.nutrients.fibre),
+                sugars: roundVals(acc.sugars + ingredient.nutrients.sugars),
+                protein: roundVals(acc.protein + ingredient.nutrients.protein),
+                cholesterol: roundVals(acc.cholesterol + ingredient.nutrients.cholesterol),
+                sodium: roundVals(acc.sodium + ingredient.nutrients.sodium),
+                vitamind: roundVals(acc.vitamind + ingredient.nutrients.vitamind),
+                iron: roundVals(acc.iron + ingredient.nutrients.iron),
+                potassium: roundVals(acc.potassium + ingredient.nutrients.potassium),
+                calcium: roundVals(acc.calcium + ingredient.nutrients.calcium)
+            }), mainRecipe.nutritionFacts)
+
             setMainRecipe({
                 ...mainRecipe,
-                nutritionFacts: response.nutritionFacts,
+                nutritionFacts: totalNutritionFacts,
                 ingredientSections: mainRecipe.ingredientSections.map(section => ({
                     ...section,
                     ingredients: section.ingredients.map(ingredient => {
                         // Find the matching ingredient from response by name 
-                        
-                        const updatedIngredient = response.ingredients?.find(
+                        const updatedIngredient = response?.find(
                             respIng => respIng.name === ingredient.name
                         )
                         
@@ -84,23 +101,33 @@ const AddRecipe = () => {
             })
         })
         .catch((error: string) => {
+            console.error(error)
             setDisplayNFLoading(false)
             setDisplayNFError(error)
         })
     }
 
-    const uploadRecipe = (e: any) => {    
-        e.preventDefault()
-
+    const uploadRecipe = () => {  
         console.log("Final Recipe: \r\n", mainRecipe)
+        BackendAPI.doesRecipeExist(mainRecipe.recipeName)
+            .then(() =>
+                BackendAPI.postRecipe(mainRecipe)
+                .then(() => toast.success("Recipe created successfully!"))
+                .catch((error) => {
+                    toast.error("Somethign went wrong uploading: ", error)
+                })
+            ).catch((error) => {
+                console.error(error)
+            })
     }
 
     return (
         <div className="w-full h-full">
+            <Toaster/>
             <h2 className="text-3xl font-semibold w-full text-center mb-4">Add Recipe</h2>
             <div className="flex flex-col divide-y space-y-4">
                 {/* Main Content */}
-                <form className="flex-1 h-full flex flex-col items-center overflow-y-auto p-4 mb-4" onSubmit={(e) => uploadRecipe(e)}> 
+                <form className="flex-1 h-full flex flex-col items-center overflow-y-auto p-4 mb-4" onSubmit={(e) => e.preventDefault()}> 
                     <div className="flex flex-col space-y-6 w-3/4">   
                         {/* Main form fields */}
                         <div className="grid grid-cols-8 gap-4">
@@ -165,7 +192,7 @@ const AddRecipe = () => {
                                     <input
                                         className="border border-1 w-96 bg-white px-2 rounded-md"
                                         type="text"
-                                        value={mainRecipe.tags}
+                                        value={mainRecipe.tags.join(",")}
                                         onChange={(e) => {updateRecipe("tags", e.target.value)}}
                                     />
                                 </div>
@@ -211,7 +238,7 @@ const AddRecipe = () => {
 
                         {/*  Ingredients */}
                         <div className="flex flex-row justify-evenly w-full border-b border-t gap-x-4 py-6 border-black">
-                            <div className="w-full max-h-[60rem] overflow-y-auto flex-1">
+                            <div className="w-full flex-1">
                                 <IngredientSectionList
                                     ingredientSections={ mainRecipe.ingredientSections }
                                     ingredientSectionControlsList={ ingredientSectionControlsList }
@@ -284,7 +311,7 @@ const AddRecipe = () => {
                     <div className="flex justify-center mt-4">
                         <button 
                             className="border border-1 px-8 py-2 rounded-lg shadow-lg bg-thymeButton" 
-                            type="submit"
+                            onClick={() => uploadRecipe()}
                         >
                             Submit
                         </button>

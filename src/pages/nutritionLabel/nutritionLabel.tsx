@@ -38,10 +38,11 @@ const NutritionLabel = ({nutritionFacts, totalServings, servingSize, servingForm
     }, [calculatePerServing])
 
     useEffect(() => {
-        if (totalServings > 0) {
+        console.log("FACTS INPUT: ", nutritionFacts)
+        if (totalServings > 0 && servingSize > 0) {
             setNutritionPerServing(nutritionFacts)
         }
-    }, [totalServings, nutritionFacts, setNutritionPerServing])
+    }, [totalServings, nutritionFacts, setNutritionPerServing, servingSize])
     
     const setNameDisplayValue = (value: string) => {
         if (value == 'saturatedFat' || value == 'transFat' || value == 'fibre' || value =='sugars') {

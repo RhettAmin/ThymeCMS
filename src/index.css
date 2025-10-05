@@ -10,6 +10,7 @@
   --color-thymeButtonHover: #64c46e; /* grass */
   --color-thymeProgress: #49c846; /* Deep Green */ 
   --color-thymeProgressBackground: #bbedba; /* Pale Green */ 
+  --color-thymeNegative: #d64242;
   --color-navActiveHighlight: #9e2e2e; /* Red */ 
   --color-navHighlight: 	#6b2e2e; /* Wine */ 
 }

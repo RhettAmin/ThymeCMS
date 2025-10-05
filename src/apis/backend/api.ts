@@ -1,21 +1,21 @@
 import { Md5 } from 'ts-md5'
 import axios from 'axios'
-import { RecipeModel } from '../../models/recipeModels'
-import { RecipeDTO } from '../../models/recipeMongo'
+import { Ingredient, IngredientSectionModel, InstructionSectionModel, RecipeModel } from '../../models/recipeModels'
+import { RecipeDTO, IngredientSectionDTO, IngredientDTO, InstructionSectionDTO } from '../../models/recipeMongo'
 
 const thymeAxios = axios.create({
-    baseURL: 'http://localhost:9292',
+    baseURL: import.meta.env.VITE_BACKEND_URL,
 })
 
 const generateID = (recipeName: string) => {
     return Md5.hashStr(recipeName)
 }
 
-const doesRecipeExist = async (id: string) => {
+const doesRecipeExist = async (recipeName: string) => {
     return await new Promise<boolean | string>( (resolve, reject) => {
         thymeAxios.get('/recipes', {
             params: {
-                recipeId: id
+                recipeId: generateID(recipeName)
             }
         })
         .then(response => {
@@ -29,6 +29,29 @@ const doesRecipeExist = async (id: string) => {
             console.log(error)
             reject(error)
         }) 
+    })
+}
+
+const getRecipe = async (recipeId?: string) => {
+    return await new Promise<RecipeModel>( (resolve, reject) => {
+        thymeAxios.get('/recipes', {
+            params: {
+                recipeId: recipeId
+            }
+        })
+        .then(response => {
+            console.log("Response from API: ", response.data)
+            // We're getting a single recipe here, the API call returns it as a list so we grab the first value
+            const responseObj: RecipeDTO = response.data.recipe_list[0] 
+
+            convertRecipeDTOToRecipe(responseObj).then((recipeObj) => {
+                resolve(recipeObj)
+            })
+        })
+        .catch(error => {
+            console.log(error)
+            reject()
+        }); 
     })
 }
 
@@ -66,33 +89,29 @@ const convertRecipeToRecipeDTO = async(recipe: RecipeModel) => {
     return await new Promise<RecipeDTO>((resolve) => {
         const recipeDTO = new RecipeDTO
 
-        recipeDTO.recipe_id = recipe.recipeId
-        recipeDTO.name = recipe.name
+        recipeDTO.recipe_id = generateID(recipe.recipeName)
+        recipeDTO.name = recipe.recipeName
         recipeDTO.description = recipe.description
 
-        // Metadata
-        recipeDTO.metadata.main_image_alt_text = recipe.metadata.mainImageAltText
-
         // Serving
-        recipeDTO.serving.amount = recipe.serving.amount
-        recipeDTO.serving.serving_size = recipe.serving.servingSize
-        recipeDTO.serving.total_servings = recipe.serving.totalServings
+        recipeDTO.serving.form = recipe.servingForm
+        recipeDTO.serving.serving_size = recipe.servingSize
+        recipeDTO.serving.total_servings = recipe.totalServings
 
         recipeDTO.tags = recipe.tags
         recipeDTO.time_to_plate = recipe.timeToPlate
-        recipeDTO.images = recipe.images
-        recipeDTO.created_date = recipe.createdDate
-        recipeDTO.updated_date = recipe.updatedDate
+        recipeDTO.created_date = new Date().toISOString().split('T')[0]
+        recipeDTO.updated_date = new Date().toISOString().split('T')[0]
 
         const ing_Sections: IngredientSectionDTO[] = []
         // Ingredient Section
-        recipe.ingredientSection.forEach((section) => {
-            const i_section = new IngredientSectionDTO
+        recipe.ingredientSections.forEach((section) => {
+            const i_section = new IngredientSectionDTO()
             
             i_section.section_name = section.sectionName
 
             section.ingredients.forEach((ing) => {
-                const ingredient = new IngredientDTO
+                const ingredient = new IngredientDTO()
 
                 ingredient.name = ing.name
                 ingredient.measurement = ing.measurement
@@ -109,11 +128,10 @@ const convertRecipeToRecipeDTO = async(recipe: RecipeModel) => {
         const instr_section: InstructionSectionDTO[] = []
         
         // Instruction Section
-        recipe.instructionSection.forEach((section) => {
-            const i_section = new InstructionSectionDTO
+        recipe.instructionSections.forEach((section) => {
+            const i_section = new InstructionSectionDTO()
             
             i_section.section_name = section.sectionName
-            i_section.metadata.alt_text = section.metadata.altText
             
             const steps: string[] = []
             section.steps.forEach((step) => {
@@ -138,7 +156,7 @@ const convertRecipeToRecipeDTO = async(recipe: RecipeModel) => {
         recipeDTO.nutrition_facts.sodium = recipe.nutritionFacts.sodium
         recipeDTO.nutrition_facts.sugars = recipe.nutritionFacts.sugars
         recipeDTO.nutrition_facts.trans_fat = recipe.nutritionFacts.transFat
-        recipeDTO.nutrition_facts.vitamin_d = recipe.nutritionFacts.vitaminD
+        recipeDTO.nutrition_facts.vitamin_d = recipe.nutritionFacts.vitamind
 
         resolve(recipeDTO)
 
@@ -147,36 +165,31 @@ const convertRecipeToRecipeDTO = async(recipe: RecipeModel) => {
 
 const convertRecipeDTOToRecipe = async(recipeDTO: RecipeDTO) => {
     return await new Promise<RecipeModel>((resolve) => {
-        const recipe = new Recipe
+        const recipe = new RecipeModel()
 
-        recipe.recipeId = recipeDTO.recipe_id
-        recipe.name = recipeDTO.name
+        recipe.recipeName = recipeDTO.name
         recipe.description = recipeDTO.description
 
-        // Metadata
-        recipe.metadata.mainImageAltText = recipeDTO.metadata.main_image_alt_text
-
         // Serving
-        recipe.serving.amount = recipeDTO.serving.amount
-        recipe.serving.servingSize = recipeDTO.serving.serving_size
-        recipe.serving.totalServings = recipeDTO.serving.total_servings
+        recipe.servingForm = recipeDTO.serving.form
+        recipe.servingSize = recipeDTO.serving.serving_size
+        recipe.totalServings = recipeDTO.serving.total_servings
 
         recipe.tags = recipeDTO.tags
         recipe.timeToPlate = recipeDTO.time_to_plate
-        recipe.images = recipeDTO.images
         recipe.createdDate = recipeDTO.created_date
         recipe.updatedDate = recipeDTO.updated_date
 
-        const ingSections: IngredientSection[] = []
+        const ingSections: IngredientSectionModel[] = []
         // Ingredient Section
         if (recipeDTO.ingredient_section) {
             recipeDTO.ingredient_section.forEach((section) => {
-                const iSection = new IngredientSection
+                const iSection = new IngredientSectionModel()
                 
                 iSection.sectionName = section.section_name
 
                 section.ingredients.forEach((ing) => {
-                    const ingredient = new Ingredient
+                    const ingredient = new Ingredient("", 0, "", 0)
 
                     ingredient.name = ing.name
                     ingredient.measurement = ing.measurement
@@ -188,17 +201,16 @@ const convertRecipeDTOToRecipe = async(recipeDTO: RecipeDTO) => {
 
                 ingSections.push(iSection)
             })
-            recipe.ingredientSection = ingSections
+            recipe.ingredientSections = ingSections
         }
 
-        const instrSection: InstructionSection[] = []
+        const instrSection: InstructionSectionModel[] = []
         // Instruction Section
         if (recipeDTO.instruction_section) {
             recipeDTO.instruction_section.forEach((section) => {
-                const iSection = new InstructionSection
+                const iSection = new InstructionSectionModel()
                 
                 iSection.sectionName = section.section_name
-                iSection.metadata.altText = section.metadata.alt_text
 
                 const steps: string[] = []
                 section.steps.forEach((step) => {
@@ -207,7 +219,7 @@ const convertRecipeDTOToRecipe = async(recipeDTO: RecipeDTO) => {
                 iSection.steps = steps
                 instrSection.push(iSection)
             })
-            recipe.instructionSection = instrSection
+            recipe.instructionSections = instrSection
         }
 
         // NutritionFacts
@@ -224,7 +236,7 @@ const convertRecipeDTOToRecipe = async(recipeDTO: RecipeDTO) => {
         recipe.nutritionFacts.sodium = recipeDTO.nutrition_facts.sodium
         recipe.nutritionFacts.sugars = recipeDTO.nutrition_facts.sugars
         recipe.nutritionFacts.transFat = recipeDTO.nutrition_facts.trans_fat
-        recipe.nutritionFacts.vitaminD = recipeDTO.nutrition_facts.vitamin_d
+        recipe.nutritionFacts.vitamind = recipeDTO.nutrition_facts.vitamin_d
 
         resolve(recipe)
 
@@ -232,8 +244,8 @@ const convertRecipeDTOToRecipe = async(recipeDTO: RecipeDTO) => {
 }
 
 
-const MongoAPI = {
-    generateID, doesRecipeExist, postRecipe
+const BackendAPI = {
+    generateID, doesRecipeExist, postRecipe, getRecipe
 }
 
-export default MongoAPI
+export default BackendAPI

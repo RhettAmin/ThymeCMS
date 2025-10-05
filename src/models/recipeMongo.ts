@@ -1,12 +1,12 @@
 class RecipeDTO {
     recipe_id: string = ""
     name: string = ""
+    hero_image_link: string = ""
+    main_image_link: string = ""
     description: string = ""
     serving: ServingDTO = new ServingDTO
     tags: string[] = []
     time_to_plate: number = 0
-    images: string = ""
-    metadata: Metadata = new Metadata
     created_date: string = ""
     updated_date: string = ""
     ingredient_section: IngredientSectionDTO[] = []
@@ -14,14 +14,10 @@ class RecipeDTO {
     nutrition_facts: NutritionFactsDTO = new NutritionFactsDTO
 }
 
-class Metadata {
-    main_image_alt_text: string = ''
-}
-
 class ServingDTO {
     total_servings: number = 0
     serving_size: number = 0
-    amount: string = ""
+    form: string = ""
 }
 
 class IngredientSectionDTO {

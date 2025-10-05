@@ -4,7 +4,7 @@
 @tailwind utilities;
 
 :root {
-  --text-white: #ffffff;
+  /* --text-white: #ffffff;
 
   --text-black: #000000;
   --text-black-soft: hsl(0, 0%, 50%);
@@ -13,8 +13,9 @@
   --thymeBackdrop: hsl(126, 40%, 95%);
   --thymeProgress: hsl(119, 54%, 53%);
   --thymeProgressBackground: hsl(119, 59%, 83%);
+  --thymeNegative: hsl(0, 40%, 50%);
   --nav-active-highlight: hsl(0, 55%, 40%);
-  --nav-highlight: hsl(0, 40%, 30%);
+  --nav-highlight: hsl(0, 40%, 30%); */
 }
 
 body {

@@ -19,7 +19,7 @@ const InstructionSectionList = ({instructionSections, ingredientSections, onUpda
     }
 
     const removeInstructionSection = (sectionIndex: number) => {
-        onUpdateRecipe(instructionSections.splice(sectionIndex, 1))
+        onUpdateRecipe( instructionSections.filter((_, i) => i !== sectionIndex))
     }
 
     const addInstructionSection = () => {
@@ -78,7 +78,7 @@ const InstructionSectionList = ({instructionSections, ingredientSections, onUpda
          <div className="p-4 h-full overflow-auto">
             <h2 className="pb-3 text-3xl">Instructions</h2> 
 
-            <div className="flex flex-col space-y-3 py-4 h-overflow-y-auto border border-thymeProgress rounded-md bg-thymeProgress p-2 w-full">   
+            <div className="flex flex-col space-y-3 py-4 h-overflow-y-auto rounded-md p-2 w-full">   
                 {
                     instructionSections.map((section: InstructionSectionModel, SIndex: number) => {
                         return (
@@ -115,18 +115,21 @@ const InstructionSectionList = ({instructionSections, ingredientSections, onUpda
                                         <p className="font-bold">Ingredients</p>
                                         <div>
                                             {   ingredientSections.length > 0 &&
-                                                ingredientSections.map((section: IngredientSectionModel, index: number) => {
-                                                     return (
-                                                        <ul key={index}>{ 
-                                                            section.ingredients.map((ingredient, index: number) => {
-                                                                return (
-                                                                    <li key={index}>{ ingredient.name }</li>
-                                                                )
-                                                            })
-                                                        }
-                                                        </ul>
-                                                    )
-                                                })
+                                                ingredientSections.map((section: IngredientSectionModel, index: number) => 
+                                                    index === SIndex ?
+                                                        (
+                                                            <ul key={index} className="grid grid-cols-4 gap-4">
+                                                                { 
+                                                                    section.ingredients.map((ingredient, index: number) => {
+                                                                        return (
+                                                                            <li className="col-span-1" key={index}>{ ingredient.name }</li>
+                                                                        )
+                                                                    })
+                                                                }
+                                                            </ul>
+                                                        ) :
+                                                        <></>
+                                                )
                                             }
                                         </div>
                                     </div>
@@ -179,7 +182,7 @@ const InstructionSectionList = ({instructionSections, ingredientSections, onUpda
                 <button className="rounded border px-24 py-1 bg-thymeButton cursor-pointer" 
                     onClick={ () => addInstructionSection() }
                 >
-                    Add Ingredient Section
+                    Add Instruction Section
                 </button>
             </div>
 

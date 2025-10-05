@@ -23,7 +23,7 @@ const IngredientSectionList = ({
                     {searchValue: "", lastSearchedValue:"", ingredients:[], micronutrientDisplay: [], page: 1}
                 ])
             }
-        }, [ingredientSectionControlsList, ingredientSections, onSetIngredientSectionControlsList])
+        }, [ingredientSections, ingredientSectionControlsList, onSetIngredientSectionControlsList])
 
         const addIngredientSection = () => { 
             onUpdateRecipe([...ingredientSections, new IngredientSectionModel()])
@@ -109,6 +109,19 @@ const IngredientSectionList = ({
                     } : 
                     section
             ))
+            if (key === 'name' && typeof value === 'string') {
+                onSetIngredientSectionControlsList(ingredientSectionControlsList.map(
+                    (section: IngredientSectionControls, index: number) => 
+                        index === sectionIndex ?
+                            { ...section, micronutrientDisplay: section.micronutrientDisplay.map(
+                                (ingredientObj: MicronutrientDisplay, index: number) => 
+                                    index === ingredientIndex ?
+                                        { ...ingredientObj, ingredient: value } :
+                                        ingredientObj
+                            ) } :
+                            section
+                ))
+            }
         }
 
         const updateIngredientNutrientValue = (
@@ -177,11 +190,39 @@ const IngredientSectionList = ({
                 })
         }, [ingredientSectionControlsList, onSetIngredientSectionControlsList])
 
+        const clearSectionSearch = useCallback((sectionIndex: number) => {
+            const searchValue = ingredientSectionControlsList[sectionIndex].searchValue
+            onSetIngredientSectionControlsList(ingredientSectionControlsList.map(
+                (section: IngredientSectionControls, index: number) => 
+                    index === sectionIndex ?
+                        { ...section, searchValue: "", ingredients: [], page: 1, lastSearchedValue: searchValue } :
+                        section
+            ))
+        }, [ingredientSectionControlsList, onSetIngredientSectionControlsList])
+
         const addSearchResultToSectionIngList = useCallback((sectionIndx:number, ingredient: Ingredient) => {
             addIngredientToSection(sectionIndx, ingredient)
         },[addIngredientToSection])
 
         const openCloseMicroNutrients = useCallback((SIndex: number, ingredient: Ingredient) => {
+            console.log("HIT: ", SIndex, ingredient, ingredientSectionControlsList)
+            console.log("VALUE CHANGE TO: ", ingredientSectionControlsList.map(
+                (section: IngredientSectionControls, index: number) => 
+                    index === SIndex ?
+                        { 
+                            ...section, 
+                            micronutrientDisplay: section.micronutrientDisplay.map(
+                                (display: MicronutrientDisplay) =>
+                                    display.ingredient === ingredient.name ?
+                                    {
+                                        ...display,
+                                        shouldDisplayMicronutrients: !display.shouldDisplayMicronutrients
+                                    } :
+                                    display
+                            ) 
+                        } :
+                        section
+            ))
             onSetIngredientSectionControlsList(ingredientSectionControlsList.map(
                 (section: IngredientSectionControls, index: number) => 
                     index === SIndex ?
@@ -203,10 +244,10 @@ const IngredientSectionList = ({
 
         // Renderable
         return (
-            <div className="p-4 h-full overflow-auto">
+            <div className="p-4 h-full">
                 <h2 className="pb-3 text-3xl border-b border-gray-400">Ingredients</h2>
                 
-                <div className="flex flex-col space-y-3 mt-4 h-overflow-y-scroll max-h-400 rounded-md w-full">   
+                <div className="flex flex-col space-y-3 mt-4 overflow-y-auto max-h-200 rounded-md w-full">   
                     {/* Ingredient section Map */}
                     {   
                         ingredientSections.map((section: IngredientSectionModel, SIndex: number) => {
@@ -248,46 +289,55 @@ const IngredientSectionList = ({
                                             >
                                                 Search
                                             </button>
+                                            <button
+                                                className="w-[80px] bg-thymeNegative p-2 rounded-lg"
+                                                onClick={() => clearSectionSearch(SIndex)}
+                                            >
+                                                Clear
+                                            </button>
                                         </div>
 
                                         {/* Search Results */}
-                                        <div className={`border border-slate-200 p-4 rounded-lg ${ ingredientSectionControlsList[SIndex].ingredients.length > 0 ? '' : 'hidden'}`}>
-                                            <label className="font-bold">Results - <span className="italic text-sm">Select One</span></label>
-                                            <div>
-                                               {
-                                                    ingredientSectionControlsList[SIndex].ingredients
-                                                        .map((ingredient: Ingredient, index: number) => (
-                                                            <div key={index}
-                                                                className={`flex flex-row justify-between p-2 rounded-lg cursor-pointer
-                                                                ${index%2==0 ? 'bg-amber-100 hover:bg-amber-200' : 'bg-emerald-100 hover:bg-emerald-200'}`}
-                                                                onClick={() => addSearchResultToSectionIngList(SIndex, ingredient)}
-                                                            >
-                                                                <p>{ ingredient.name }</p>
-                                                                {/* Ingredients */}
-                                                                <div className="flex flex-row space-x-4">
-                                                                    <div className="space-x-2">   
-                                                                        <label className="font-bold">Calories</label>
-                                                                        <label>{ ingredient.nutrients.calories }</label>
-                                                                    </div>
-                                                                    <div className="space-x-2">   
-                                                                        <label className="font-bold">Protein</label>
-                                                                        <label>{ ingredient.nutrients.protein }</label>
-                                                                    </div>
-                                                                    <div className="space-x-2">   
-                                                                        <label className="font-bold">Carbs</label>
-                                                                        <label>{ ingredient.nutrients.carbohydrate }</label>
-                                                                    </div>
-                                                                    <div className="space-x-2">   
-                                                                        <label className="font-bold">Fat</label>
-                                                                        <label>{ ingredient.nutrients.fat }</label>
+                                        {
+                                            ingredientSectionControlsList[SIndex] && // Check to see if instance exists first before rendering.
+                                            <div className={`border border-slate-200 p-4 rounded-lg 
+                                                ${ ingredientSectionControlsList[SIndex].ingredients.length > 0 ? '' : 'hidden'}`}>
+                                                <label className="font-bold">Results - <span className="italic text-sm">Select One</span></label>
+                                                <div>
+                                                {
+                                                        ingredientSectionControlsList[SIndex].ingredients
+                                                            .map((ingredient: Ingredient, index: number) => (
+                                                                <div key={index}
+                                                                    className={`flex flex-row justify-between p-2 rounded-lg cursor-pointer
+                                                                    ${index%2==0 ? 'bg-amber-100 hover:bg-amber-200' : 'bg-emerald-100 hover:bg-emerald-200'}`}
+                                                                    onClick={() => addSearchResultToSectionIngList(SIndex, ingredient)}
+                                                                >
+                                                                    <p>{ ingredient.name }</p>
+                                                                    {/* Ingredients */}
+                                                                    <div className="flex flex-row space-x-4">
+                                                                        <div className="space-x-2">   
+                                                                            <label className="font-bold">Calories</label>
+                                                                            <label>{ ingredient.nutrients.calories }</label>
+                                                                        </div>
+                                                                        <div className="space-x-2">   
+                                                                            <label className="font-bold">Protein</label>
+                                                                            <label>{ ingredient.nutrients.protein }</label>
+                                                                        </div>
+                                                                        <div className="space-x-2">   
+                                                                            <label className="font-bold">Carbs</label>
+                                                                            <label>{ ingredient.nutrients.carbohydrate }</label>
+                                                                        </div>
+                                                                        <div className="space-x-2">   
+                                                                            <label className="font-bold">Fat</label>
+                                                                            <label>{ ingredient.nutrients.fat }</label>
+                                                                        </div>
                                                                     </div>
                                                                 </div>
-                                                            </div>
-                                                    ))
-                                                }
+                                                        ))
+                                                    }
+                                                </div>
                                             </div>
-                                        </div>
-                                        
+                                        }
                                     </div>
 
                                     {/* Added Ingredients */}
@@ -404,7 +454,7 @@ const IngredientSectionList = ({
                                                             <div className="py-1 px-2">
                                                                 <div className="flex flex-row justify-between py-1 px-3 cursor-pointer bg-orange-200 rounded-lg" 
                                                                     onClick={() => openCloseMicroNutrients(SIndex, ingredient)}>
-                                                                    <p className="">
+                                                                    <p className="font-bold">
                                                                             More Nutrients
                                                                     </p>
 
