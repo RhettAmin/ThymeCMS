@@ -11,7 +11,7 @@ function App() {
     <div className="flex flex-col w-full h-full bg-thymeBackground">
       <Navigation />
       <Suspense fallback={<div>Loading...</div>}>
-        <div className="p-2">
+        <div className="p-2 w-full h-full">
           <Routes>
               <Route path="/" element={<ViewRecipes />} />
               <Route path="/addrecipe" element={<AddRecipe />} />

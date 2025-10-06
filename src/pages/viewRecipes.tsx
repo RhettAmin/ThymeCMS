@@ -2,7 +2,7 @@
 
 const ViewRecipes = () => {
     return (
-        <div>
+        <div className="w-full h-full">
             <h2 className="text-lg">View Recipes</h2>
         </div>
     )
