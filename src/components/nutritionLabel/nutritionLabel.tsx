@@ -38,9 +38,11 @@ const NutritionLabel = ({nutritionFacts, totalServings, servingSize, servingForm
     }, [calculatePerServing])
 
     useEffect(() => {
-        console.log("FACTS INPUT: ", nutritionFacts)
+        // console.log("FACTS INPUT: ", nutritionFacts)
         if (totalServings > 0 && servingSize > 0) {
             setNutritionPerServing(nutritionFacts)
+        } else {
+            setNutritionFactsPerServing(new NutritionFacts())
         }
     }, [totalServings, nutritionFacts, setNutritionPerServing, servingSize])
     
@@ -58,8 +60,14 @@ const NutritionLabel = ({nutritionFacts, totalServings, servingSize, servingForm
         return calculateDV(dailyValues[nutrient as keyof NutritionDailyValues], value) +'%'
     }
 
+    const getFontSize = (text: string) => {
+        const length = text.length
+        if (length >= 6) return 'text-xs'
+        return 'text-base'
+    }
+
     return (
-        <div className="bg-white border border-black box-border p-1">
+        <div className="bg-white border border-black box-border p-2">
            
             {/* Main Container */}
             <div>
@@ -75,9 +83,9 @@ const NutritionLabel = ({nutritionFacts, totalServings, servingSize, servingForm
                 </div>
 
                 {/* Columns */}
-                <div className="grid grid-cols-4 divide-x-2 divide-slate-300">
+                <div className="grid grid-cols-7 divide-x-2 divide-slate-300">
                     {/* =================== Col 1 ======================== */}
-                    <div className="col-span-2 px-1">
+                    <div className="col-span-3 px-1">
                         <div className="pt-6">
                             <label className="font-bold text-3xl">Calories</label>
                         </div>
@@ -120,7 +128,7 @@ const NutritionLabel = ({nutritionFacts, totalServings, servingSize, servingForm
                     </div>
 
                     {/*  =================== Col 2 ======================== */}
-                    <div className="px-1">
+                    <div className="col-span-2 px-1">
                         <div className="font-bold flex flex-col place-items-end"> 
                             <label className="text-lg">Per Serving</label>
                             <label className="text-2xl">{ Math.round(nutritionFactsPerServing.calories) }</label>  
@@ -139,7 +147,7 @@ const NutritionLabel = ({nutritionFacts, totalServings, servingSize, servingForm
                                         <div key={idx}>
                                            <div className="flex flex-row justify-between"> 
                                                 <div>
-                                                    <label>
+                                                    <label className={`${getFontSize((nutritionFactsPerServing[value as keyof NutritionFacts]).toFixed(1))}`}>
                                                         { 
                                                             (nutritionFactsPerServing[value as keyof NutritionFacts]).toFixed(1) + 
                                                                 (value == 'cholesterol' || value=='sodium' ? 'mg' : 'g')
@@ -147,7 +155,7 @@ const NutritionLabel = ({nutritionFacts, totalServings, servingSize, servingForm
                                                     </label>
                                                 </div>
                                                 <div>
-                                                    <label>
+                                                    <label className={`${getFontSize((nutritionFactsPerServing[value as keyof NutritionFacts]).toFixed(1))}`}>
                                                         {
                                                             displayVitamins(value, (nutritionFactsPerServing[value as keyof NutritionFacts]))
                                                         }
@@ -190,7 +198,7 @@ const NutritionLabel = ({nutritionFacts, totalServings, servingSize, servingForm
                     </div>
 
                     {/* =================== Col 3 ======================== */}
-                     <div className="px-1">
+                     <div className="col-span-2 px-1">
                         <div className="font-bold flex flex-col place-items-end"> 
                             <label className="text-xl">Total</label>
                             <label className="text-2xl">{ Math.round(nutritionFacts.calories) }</label>
@@ -209,7 +217,7 @@ const NutritionLabel = ({nutritionFacts, totalServings, servingSize, servingForm
                                         <div key={idx}>
                                            <div className="flex flex-row justify-between"> 
                                                 <div>
-                                                    <label>
+                                                    <label className={`${getFontSize((nutritionFactsPerServing[value as keyof NutritionFacts]).toFixed(1))}`}>
                                                         { 
                                                             (nutritionFacts[value as keyof NutritionFacts]).toFixed(1) + 
                                                             (value == 'cholesterol' || value=='sodium' ? 'mg' : 'g')
@@ -217,7 +225,7 @@ const NutritionLabel = ({nutritionFacts, totalServings, servingSize, servingForm
                                                     </label>
                                                 </div>
                                                 <div>
-                                                    <label>
+                                                    <label className={`${getFontSize((nutritionFactsPerServing[value as keyof NutritionFacts]).toFixed(1))}`}>
                                                         {
                                                             displayVitamins(value, (nutritionFacts[value as keyof NutritionFacts]))
                                                         }

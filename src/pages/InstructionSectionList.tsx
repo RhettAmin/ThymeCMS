@@ -1,3 +1,4 @@
+import Button from "@/components/button"
 import { IngredientSectionModel, InstructionSectionModel } from "../models/recipeModels"
 
 
@@ -105,7 +106,7 @@ const InstructionSectionList = ({instructionSections, ingredientSections, onUpda
                                     <div className="pb-2 relative flex-auto flex flex-col">
                                         <label>Image Reference</label>
                                         <input
-                                            value={section.image}
+                                            value={ section.image ? section.image : ""}
                                             placeholder="Image Link"
                                             onChange={(e) => updateSectionImageRef(SIndex, e.target.value)}
                                             className="bg-white border border-1 rounded-md px-1 py-2 w-full"
@@ -128,7 +129,7 @@ const InstructionSectionList = ({instructionSections, ingredientSections, onUpda
                                                                 }
                                                             </ul>
                                                         ) :
-                                                        <></>
+                                                        <div hidden key={index}></div>
                                                 )
                                             }
                                         </div>
@@ -165,11 +166,10 @@ const InstructionSectionList = ({instructionSections, ingredientSections, onUpda
                                     </div>
 
                                     <div>
-                                        <button className="rounded border px-24 py-1 bg-thymeButton cursor-pointer" 
-                                            onClick={ () => addStepToSection(SIndex) }
-                                        >
-                                            Add Step
-                                        </button>
+                                        <Button 
+                                            message={"Add Step"} 
+                                            onClickFn={ () => addStepToSection(SIndex) } 
+                                        />
                                     </div>
                                 </div>
                             </div>
@@ -179,11 +179,10 @@ const InstructionSectionList = ({instructionSections, ingredientSections, onUpda
             </div>
 
             <div className="my-2 flex justify-center">
-                <button className="rounded border px-24 py-1 bg-thymeButton cursor-pointer" 
-                    onClick={ () => addInstructionSection() }
-                >
-                    Add Instruction Section
-                </button>
+                <Button 
+                    message={"Add Instruction Section"} 
+                    onClickFn={ () => addInstructionSection() } 
+                />
             </div>
 
         </div>

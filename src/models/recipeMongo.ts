@@ -12,6 +12,7 @@ class RecipeDTO {
     ingredient_section: IngredientSectionDTO[] = []
     instruction_section: InstructionSectionDTO[] = []
     nutrition_facts: NutritionFactsDTO = new NutritionFactsDTO
+    is_active: boolean = true
 }
 
 class ServingDTO {
@@ -27,19 +28,22 @@ class IngredientSectionDTO {
 
 class IngredientDTO {
     name: string = ""
+    fdcid: number = 0
     quantity: number = 0
     measurement: string = ""
     type: number = 0
+    nutrients = new NutritionFactsDTO()
 }
 
 class InstructionSectionDTO {
     section_name: string = ""
-    metadata: InstructionImageMetadata = new InstructionImageMetadata
+    image_link: string = ""
+    metadata: InstructionImageMetadata = new InstructionImageMetadata()
     steps: string[] = []
 }
 
 class InstructionImageMetadata {
-    alt_text: string = ''
+    alt_text: string = ""
 }
 
 class NutritionFactsDTO {

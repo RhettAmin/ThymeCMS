@@ -1,41 +1,25 @@
-import { IngredientSectionModel, Ingredient } from "../models/recipeModels"
-import { useCallback, useEffect } from "react"
+import Button from "@/components/button"
+import { IngredientSectionModel, Ingredient, MicronutrientDisplay } from "../models/recipeModels"
+import { ingredientTypeOptions } from "./utils"
 import USDAAPI from "@/apis/USDA/api"
-import { IngredientSectionControls, ingredientTypeOptions, MicronutrientDisplay } from "./utils"
+import { useCallback } from "react"
 
 type displayIngredientSectionType = {
     ingredientSections: IngredientSectionModel[]
-    ingredientSectionControlsList: IngredientSectionControls[],
     onUpdateRecipe: ((updatedSection: IngredientSectionModel[]) => void)
-    onSetIngredientSectionControlsList: ((ingredientSectionControlsList: IngredientSectionControls[]) => void)
 }
 
 const IngredientSectionList = ({
-    ingredientSections, ingredientSectionControlsList, 
-    onUpdateRecipe, onSetIngredientSectionControlsList
+    ingredientSections, 
+    onUpdateRecipe
 }: displayIngredientSectionType) => {
   
-        useEffect(() => {
-            // set auxiliary arrays to be the same size as ingredientSections when it updates.
-            if (ingredientSections.length > ingredientSectionControlsList.length) {
-                onSetIngredientSectionControlsList([
-                    ...ingredientSectionControlsList, 
-                    {searchValue: "", lastSearchedValue:"", ingredients:[], micronutrientDisplay: [], page: 1}
-                ])
-            }
-        }, [ingredientSections, ingredientSectionControlsList, onSetIngredientSectionControlsList])
-
         const addIngredientSection = () => { 
             onUpdateRecipe([...ingredientSections, new IngredientSectionModel()])
-            onSetIngredientSectionControlsList([
-                ...ingredientSectionControlsList, 
-                { searchValue: "", lastSearchedValue:"", ingredients:[], micronutrientDisplay: [], page: 1}
-            ])
         }
 
         const removeIngredientSection = (sectionIndex: number) => {
             onUpdateRecipe( ingredientSections.filter((_, i) => i !== sectionIndex))
-            onSetIngredientSectionControlsList(ingredientSectionControlsList.filter((_, i) => i !== sectionIndex))
         }
 
         const updateSectionName = (newNameValue: string, sectionIndex: number) => {
@@ -52,23 +36,18 @@ const IngredientSectionList = ({
                 index === sectionIndex ? 
                     {
                         ...section,
-                        ingredients: [...section.ingredients, ingredient]
+                        ingredients: [...section.ingredients, ingredient],
+                        controls: {
+                            ...section.controls,
+                            micronutrientDisplay: [
+                                ...section.controls.micronutrientDisplay, 
+                                { ingredient: ingredient.name, shouldDisplayMicronutrients: false}
+                            ]
+                        }
                     } :
                     section
             ))
-            onSetIngredientSectionControlsList(ingredientSectionControlsList.map(
-                (control: IngredientSectionControls, index: number) => 
-                    index === sectionIndex ? 
-                    {
-                        ...control,
-                        micronutrientDisplay: [
-                            ...control.micronutrientDisplay, 
-                            { ingredient: ingredient.name, shouldDisplayMicronutrients: false}
-                        ]
-                    } : 
-                    control
-            ))
-        }, [ingredientSectionControlsList, ingredientSections, onSetIngredientSectionControlsList, onUpdateRecipe])
+        }, [ingredientSections, onUpdateRecipe])
 
         const removeIngredientFromSection = (sectionIndex: number, ingredientIndex: number) => {
             onUpdateRecipe(ingredientSections.map((section, index) => 
@@ -78,15 +57,6 @@ const IngredientSectionList = ({
                         ingredients: section.ingredients.filter((_, i) => i !== ingredientIndex)
                     } :
                     section
-            ))
-            onSetIngredientSectionControlsList(ingredientSectionControlsList.map(
-                (control: IngredientSectionControls, index: number) => 
-                    index === sectionIndex ? 
-                    {
-                        ...control,
-                        micronutrientDisplay: control.micronutrientDisplay.filter((_, i) => i !== ingredientIndex)
-                    } : 
-                    control
             ))
         }
 
@@ -105,23 +75,16 @@ const IngredientSectionList = ({
                             iIndex === ingredientIndex ? 
                                 { ...ingredient, [key]: value } : 
                                 ingredient
-                        )
+                        ),
+                        controls: { ...section.controls, micronutrientDisplay: section.controls.micronutrientDisplay.map(
+                                (display: MicronutrientDisplay, index: number) => 
+                                    index === ingredientIndex && key === 'name' && typeof value === 'string'?
+                                        { ...display, ingredient: value } :
+                                        display
+                            ) }
                     } : 
                     section
             ))
-            if (key === 'name' && typeof value === 'string') {
-                onSetIngredientSectionControlsList(ingredientSectionControlsList.map(
-                    (section: IngredientSectionControls, index: number) => 
-                        index === sectionIndex ?
-                            { ...section, micronutrientDisplay: section.micronutrientDisplay.map(
-                                (ingredientObj: MicronutrientDisplay, index: number) => 
-                                    index === ingredientIndex ?
-                                        { ...ingredientObj, ingredient: value } :
-                                        ingredientObj
-                            ) } :
-                            section
-                ))
-            }
         }
 
         const updateIngredientNutrientValue = (
@@ -145,73 +108,103 @@ const IngredientSectionList = ({
         }
         
         const updateSearchValue = (sectionIndex: number, newValue: string) => {
-            onSetIngredientSectionControlsList(ingredientSectionControlsList.map(
-                (section: IngredientSectionControls, index: number) => 
-                    index === sectionIndex ?
-                        { ...section, searchValue: newValue } :
-                        section
+            onUpdateRecipe(ingredientSections.map((section, sIndex) => 
+                sIndex === sectionIndex ?
+                    {
+                        ...section,
+                        controls: { 
+                            ...section.controls,
+                            searchValue: newValue
+                        }
+                    } : 
+                    section
             ))
         }
 
         const searchForIngredient = useCallback((sectionIndex: number) => {
             // Get Section SearchValue
-            const searchValue = ingredientSectionControlsList[sectionIndex].searchValue
-            let page = ingredientSectionControlsList[sectionIndex].page
+            const searchValue = ingredientSections[sectionIndex].controls.searchValue
+            let page = ingredientSections[sectionIndex].controls.page
 
             // Check if the same search value has been passed along to check the next 5
-            if (searchValue == ingredientSectionControlsList[sectionIndex].lastSearchedValue) {
-                onSetIngredientSectionControlsList(ingredientSectionControlsList.map(
-                    (section: IngredientSectionControls, index: number) => 
-                        index === sectionIndex ?
-                            { ...section, page: page+1 } :
-                            section
+            if (searchValue == ingredientSections[sectionIndex].controls.lastSearchedValue) {
+                onUpdateRecipe(ingredientSections.map((section, sIndex) => 
+                    sIndex === sectionIndex ?
+                        {
+                            ...section,
+                            controls: { 
+                                ...section.controls,
+                                page: page+1
+                            }
+                        } : 
+                        section
                 ))
                 page++ // increment local page for search call
             } else {
-                onSetIngredientSectionControlsList(ingredientSectionControlsList.map(
-                    (section: IngredientSectionControls, index: number) => 
-                        index === sectionIndex ?
-                            { ...section, page: 1, lastSearchedValue: searchValue } :
-                            section
+                onUpdateRecipe(ingredientSections.map((section, sIndex) => 
+                    sIndex === sectionIndex ?
+                        {
+                            ...section,
+                            controls: { 
+                                ...section.controls,
+                                page: 1,
+                                lastSearchedValue: searchValue
+                            }
+                        } : 
+                        section
                 ))
             }
 
             USDAAPI.listFoodByNameAbridged(searchValue, page)
                 .then((response: Ingredient[]) => {
-                    onSetIngredientSectionControlsList(ingredientSectionControlsList.map(
-                        (section: IngredientSectionControls, index: number) => 
-                            index === sectionIndex ?
-                                { ...section, page: 1, ingredients: response } :
-                                section
+                    onUpdateRecipe(ingredientSections.map((section, sIndex) => 
+                        sIndex === sectionIndex ?
+                            {
+                                ...section,
+                                controls: { 
+                                    ...section.controls,
+                                    page: 1,
+                                    ingredients: response
+                                }
+                            } : 
+                            section
                     ))
                 })
                 .catch((err) => {
                     console.error(err)
                 })
-        }, [ingredientSectionControlsList, onSetIngredientSectionControlsList])
+        }, [ingredientSections, onUpdateRecipe])
 
         const clearSectionSearch = useCallback((sectionIndex: number) => {
-            const searchValue = ingredientSectionControlsList[sectionIndex].searchValue
-            onSetIngredientSectionControlsList(ingredientSectionControlsList.map(
-                (section: IngredientSectionControls, index: number) => 
-                    index === sectionIndex ?
-                        { ...section, searchValue: "", ingredients: [], page: 1, lastSearchedValue: searchValue } :
-                        section
+            const searchValue = ingredientSections[sectionIndex].controls.searchValue
+            onUpdateRecipe(ingredientSections.map((section, sIndex) => 
+                sIndex === sectionIndex ?
+                    {
+                        ...section,
+                        controls: { 
+                            ...section.controls,
+                            searchValue: "",
+                            ingredients: [],
+                            page: 1,
+                            lastSearchedValue: searchValue
+                        }
+                    } : 
+                    section
             ))
-        }, [ingredientSectionControlsList, onSetIngredientSectionControlsList])
+        }, [ingredientSections, onUpdateRecipe])
 
         const addSearchResultToSectionIngList = useCallback((sectionIndx:number, ingredient: Ingredient) => {
             addIngredientToSection(sectionIndx, ingredient)
         },[addIngredientToSection])
 
         const openCloseMicroNutrients = useCallback((SIndex: number, ingredient: Ingredient) => {
-            console.log("HIT: ", SIndex, ingredient, ingredientSectionControlsList)
-            console.log("VALUE CHANGE TO: ", ingredientSectionControlsList.map(
-                (section: IngredientSectionControls, index: number) => 
-                    index === SIndex ?
-                        { 
-                            ...section, 
-                            micronutrientDisplay: section.micronutrientDisplay.map(
+            onUpdateRecipe(ingredientSections.map((section, sIndex) => 
+                sIndex === SIndex ?
+                    {
+                        ...section,
+                        controls: { 
+                            ...section.controls,
+                            micronutrientDisplay: section.controls.micronutrientDisplay.map(
                                 (display: MicronutrientDisplay) =>
                                     display.ingredient === ingredient.name ?
                                     {
@@ -220,27 +213,11 @@ const IngredientSectionList = ({
                                     } :
                                     display
                             ) 
-                        } :
-                        section
+                        }
+                    } : 
+                    section
             ))
-            onSetIngredientSectionControlsList(ingredientSectionControlsList.map(
-                (section: IngredientSectionControls, index: number) => 
-                    index === SIndex ?
-                        { 
-                            ...section, 
-                            micronutrientDisplay: section.micronutrientDisplay.map(
-                                (display: MicronutrientDisplay) =>
-                                    display.ingredient === ingredient.name ?
-                                    {
-                                        ...display,
-                                        shouldDisplayMicronutrients: !display.shouldDisplayMicronutrients
-                                    } :
-                                    display
-                            ) 
-                        } :
-                        section
-            ))
-        }, [ingredientSectionControlsList, onSetIngredientSectionControlsList])
+        }, [ingredientSections, onUpdateRecipe])
 
         // Renderable
         return (
@@ -260,7 +237,7 @@ const IngredientSectionList = ({
                                             <div 
                                                 onClick={() => removeIngredientSection(SIndex)}
                                                 className="bg-red-300 h-1/2 p-1 rounded-md flex items-center justify-center font-bold cursor-pointer">
-                                                <img width={15} height={15} src="minus.png" alt="Logo" />
+                                                <img width={15} height={15} src="minus.png" alt="RemoveSection" />
                                             </div>
                                         </div> 
                                         <input
@@ -278,34 +255,37 @@ const IngredientSectionList = ({
                                                 className="flex-1 bg-white px-2 rounded-lg"
                                                 placeholder="Search"
                                                 value={
-                                                    ingredientSectionControlsList[SIndex] && ingredientSectionControlsList[SIndex].searchValue ? 
-                                                        ingredientSectionControlsList[SIndex].searchValue : ""
+                                                    ingredientSections[SIndex].controls && ingredientSections[SIndex].controls.searchValue ? 
+                                                        ingredientSections[SIndex].controls.searchValue : ""
                                                 }
                                                 onChange={(e) => updateSearchValue(SIndex, e.target.value)}
+                                                onKeyUp={ (event: React.KeyboardEvent<HTMLInputElement>) => {
+                                                    event.preventDefault()
+                                                    if (event.key === 'Enter') {
+                                                        searchForIngredient(SIndex)
+                                                    }
+                                                }}
                                             />
-                                            <button
-                                                className="w-[80px] bg-thymeButton p-2 rounded-lg"
-                                                onClick={() => searchForIngredient(SIndex)}
-                                            >
-                                                Search
-                                            </button>
-                                            <button
-                                                className="w-[80px] bg-thymeNegative p-2 rounded-lg"
-                                                onClick={() => clearSectionSearch(SIndex)}
-                                            >
-                                                Clear
-                                            </button>
+                                            <Button 
+                                                message={"Search"} 
+                                                onClickFn={() => searchForIngredient(SIndex)} 
+                                            />
+                                            <Button 
+                                                message={"Clear"} 
+                                                onClickFn={() => clearSectionSearch(SIndex)} 
+                                                shouldErrorRender={true} 
+                                            />
                                         </div>
 
                                         {/* Search Results */}
                                         {
-                                            ingredientSectionControlsList[SIndex] && // Check to see if instance exists first before rendering.
+                                            ingredientSections[SIndex] && // Check to see if instance exists first before rendering.
                                             <div className={`border border-slate-200 p-4 rounded-lg 
-                                                ${ ingredientSectionControlsList[SIndex].ingredients.length > 0 ? '' : 'hidden'}`}>
+                                                ${ ingredientSections[SIndex].controls.ingredients.length > 0 ? '' : 'hidden'}`}>
                                                 <label className="font-bold">Results - <span className="italic text-sm">Select One</span></label>
                                                 <div>
                                                 {
-                                                        ingredientSectionControlsList[SIndex].ingredients
+                                                        ingredientSections[SIndex].controls.ingredients
                                                             .map((ingredient: Ingredient, index: number) => (
                                                                 <div key={index}
                                                                     className={`flex flex-row justify-between p-2 rounded-lg cursor-pointer
@@ -344,7 +324,7 @@ const IngredientSectionList = ({
                                     <div className={`w-full ${section.ingredients.length > 0 ? '' : 'hidden'}`}>
                                         <label className="font-bold">Ingredients</label>
 
-                                        <div className="border rounded-lg bg-white px-2 py-2 w-full space-y-2">
+                                        <div className="border rounded-lg bg-white px-4 py-4 w-full space-y-4">
                                             {
                                                 section.ingredients.map((ingredient: Ingredient, ingIndex:number) => {
                                                     return (
@@ -442,12 +422,15 @@ const IngredientSectionList = ({
                                                                         </div>
                                                                     </div>
                                                                 </div>
-                                                                <div className="flex pr-2">
-                                                                    <span className="bg-red-300 h-fit p-1 rounded-md cursor-pointer"
+
+                                                                {/* Remove button */}
+                                                                <div className="flex -mt-2">
+                                                                    <span className="bg-red-300 w-5 h-fit p-1 rounded-md cursor-pointer"
                                                                         onClick={() => removeIngredientFromSection(SIndex, ingIndex)}
                                                                     >
-                                                                        <img width="10px" src="minus.png" alt="Logo" />
+                                                                        <img width={15} height={15} src="minus.png" alt="RemoveIngredient" />
                                                                     </span>
+                                                                    
                                                                 </div>
                                                             </div>
 
@@ -461,7 +444,7 @@ const IngredientSectionList = ({
                                                                     <img width="20px" src="down.png" alt="Logo" />
                                                                 </div>
                                                                 {   
-                                                                    ingredientSectionControlsList[SIndex].micronutrientDisplay[ingIndex].shouldDisplayMicronutrients &&
+                                                                    ingredientSections[SIndex].controls.micronutrientDisplay[ingIndex].shouldDisplayMicronutrients &&
                                                                     (
                                                                         <div className="grid grid-cols-10 gap-4">
                                                                             <div className="col-span-2">
@@ -572,11 +555,10 @@ const IngredientSectionList = ({
                 </div>
 
                 <div className="my-2 flex justify-center">
-                    <label className="rounded border px-24 py-1 bg-thymeButton cursor-pointer" 
-                        onClick={ () => addIngredientSection() }
-                    >
-                        Add Ingredient Section
-                    </label>
+                    <Button 
+                        message={"Add Ingredient Section"} 
+                        onClickFn={() => addIngredientSection()} 
+                    />
                 </div>
             </div>
         )

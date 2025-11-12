@@ -1,33 +1,51 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { RecipeModel, IngredientSectionModel, InstructionSectionModel, NutritionFacts, Ingredient } from "../models/recipeModels"
-import { IngredientSectionControls } from "./utils"
+import { RecipeModel, IngredientSectionModel, 
+    InstructionSectionModel, NutritionFacts, Ingredient } from "../models/recipeModels"
 import InstructionSectionList from "./InstructionSectionList"
-import NutritionLabel from "./nutritionLabel/nutritionLabel"
+import NutritionLabel from "../components/nutritionLabel/nutritionLabel"
 import IngredientSectionList from "./IngredientSectionList"
 import OPEN_AI_API from "@/apis/openAI/api"
-import BackendAPI from "@/apis/backend/api"
-import { useState } from "react"
+import BackendAPI from "@/apis/backend/backendAPI"
+import { useCallback, useEffect, useState } from "react"
 import toast, { Toaster } from "react-hot-toast"
+import { useSearchParams } from "react-router-dom"
+import { DoesRecipeExistOuput } from "@/apis/backend/utils"
+import Button from "@/components/button"
 
 const AddRecipe = () => {
-    // Main Recipe
-    const [mainRecipe, setMainRecipe] = useState<RecipeModel>(() => {
+    
+    const createBlankRecipe = useCallback(() => {
         const recipe = new RecipeModel()
         recipe.ingredientSections = [new IngredientSectionModel()]
         recipe.instructionSections = [new InstructionSectionModel()]
         recipe.nutritionFacts = new NutritionFacts()
         return recipe
-    })
+    }, [])
 
-    // Ingredient Section Control Variables
-    const [ingredientSectionControlsList, setIngredientSectionControlsList] = useState<IngredientSectionControls[]>(
-        [{searchValue: "", lastSearchedValue:"", ingredients:[], micronutrientDisplay: [], page: 1}]
-    )
+    // Main Recipe
+    const [mainRecipe, setMainRecipe] = useState<RecipeModel>(createBlankRecipe())
+
+    // Input for individual recipes
+    const [searchParams] = useSearchParams()
+    const inboundRecipeName = searchParams.get('recipeName')
 
     // Calculate Loading bar
     const [displayNFLoading, setDisplayNFLoading] = useState<boolean>(false)
     const [displayNFError, setDisplayNFError] = useState<string>("")
 
+    useEffect(() => {
+        if (inboundRecipeName) {
+            BackendAPI.getRecipe(inboundRecipeName).then(data => setMainRecipe(data));
+        } else {
+            setMainRecipe(createBlankRecipe())
+        }
+    }, [createBlankRecipe, inboundRecipeName])
+
+    // Logger for recipe updates
+    // useEffect(() => {
+    //     console.log("MAIN RECIPE: ", mainRecipe)
+    // }, [mainRecipe])
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const updateRecipe = (key: string, value: any) => {
         setMainRecipe(prev => ({
             ...prev,
@@ -36,29 +54,33 @@ const AddRecipe = () => {
     }
 
     const updateInstructionSectionsFromIngredients = (ingredientSections: IngredientSectionModel[]) => {
-        setMainRecipe((prev) => ({
-            ...prev,
-            instructionSections: ingredientSections.map((ingredientSection, index) => ({
-                // Use existing item if it exists   ||  Create a new one
-                ...(prev.instructionSections[index] || new InstructionSectionModel() ),
-                sectionName: ingredientSection.sectionName
+        if (ingredientSections.length > mainRecipe.instructionSections.length) {
+            setMainRecipe((prev) => ({
+                ...prev,
+                instructionSections: ingredientSections.map((ingredientSection, index) => ({
+                    // Use existing item if it exists   ||  Create a new one
+                    ...(prev.instructionSections[index] || new InstructionSectionModel() ),
+                    sectionName: ingredientSection.sectionName
+                }))
             }))
-        }))
+        }
     }
 
     const updateIngredientSectionsFromInstructions = (instructionSections: InstructionSectionModel[]) => {
-        setMainRecipe((prev) => ({
-            ...prev,
-            ingredientSections: instructionSections.map((instructionSection, index) => ({
-                // Use existing item if it exists   ||  Create a new one
-                ...(prev.ingredientSections[index] || new IngredientSectionModel() ),
-                sectionName: instructionSection.sectionName
+        if (instructionSections.length > mainRecipe.ingredientSections.length) {
+            setMainRecipe((prev) => ({
+                ...prev,
+                ingredientSections: instructionSections.map((instructionSection, index) => ({
+                    // Use existing item if it exists   ||  Create a new one
+                    ...(prev.ingredientSections[index] || new IngredientSectionModel() ),
+                    sectionName: instructionSection.sectionName
+                }))
             }))
-        }))
+        }
     }
 
     const roundVals = (num: number) => Math.round(num * 100) / 100
-    const calculateNutrionInformation = () => {
+    const calculateNutritionInformation = () => {
         setDisplayNFLoading(true)
         setDisplayNFError("")
         OPEN_AI_API.getTotalNutritionFacts(mainRecipe.ingredientSections)
@@ -110,13 +132,29 @@ const AddRecipe = () => {
     const uploadRecipe = () => {  
         console.log("Final Recipe: \r\n", mainRecipe)
         BackendAPI.doesRecipeExist(mainRecipe.recipeName)
-            .then(() =>
-                BackendAPI.postRecipe(mainRecipe)
-                .then(() => toast.success("Recipe created successfully!"))
-                .catch((error) => {
-                    toast.error("Somethign went wrong uploading: ", error)
-                })
-            ).catch((error) => {
+            .then((output: DoesRecipeExistOuput) => {
+                if (output.exists) {    // Recipe exists - update
+                    BackendAPI.updateRecipe(mainRecipe)
+                        .then(() => {
+                            console.debug("Recipe updated successfully!")
+                            toast.success("Recipe updated successfully!")
+                        })
+                        .catch((error) => {
+                            console.error("Somethign went wrong updating: ", error)
+                            toast.error("Somethign went wrong updating: ", error)
+                        })
+                } else {                // No Recipe - Create
+                    BackendAPI.postRecipe(mainRecipe)
+                        .then(() => { 
+                            console.debug("Recipe updated successfully!")
+                            toast.success("Recipe created successfully!")
+                        })
+                        .catch((error) => {
+                            console.error("Somethign went wrong updating: ", error)
+                            toast.error("Somethign went wrong creating: ", error)
+                        })
+                }
+            }).catch((error) => {
                 console.error(error)
             })
     }
@@ -125,9 +163,9 @@ const AddRecipe = () => {
         <div className="w-full h-full">
             <Toaster/>
             <h2 className="text-3xl font-semibold w-full text-center mb-4">Add Recipe</h2>
-            <div className="flex flex-col divide-y space-y-4">
+            <div className="flex flex-col">
                 {/* Main Content */}
-                <form className="flex-1 h-full flex flex-col items-center overflow-y-auto p-4 mb-4" onSubmit={(e) => e.preventDefault()}> 
+                <div className="flex-1 h-full flex flex-col items-center overflow-y-auto p-4"> 
                     <div className="flex flex-col space-y-6 w-3/4">   
                         {/* Main form fields */}
                         <div className="grid grid-cols-8 gap-4">
@@ -164,15 +202,25 @@ const AddRecipe = () => {
                                         />
                                     </div>
                                 </div>
-                                {/* Description */}
-                                <div className="col-span-8 flex flex-col flex-auto h-full gap-y-2">
-                                    <label className="font-bold">Description</label>
-                                    <textarea
-                                        className="border border-1 bg-white px-2 rounded-md h-full w-full"
-                                        rows={4}
-                                        value={mainRecipe.description}
-                                        onChange={(e) => {updateRecipe("description", e.target.value)}}
-                                    />
+                                <div className="col-span-8 flex-auto flex flex-col gap-y-8 h-full">
+                                    {/* Description */}
+                                    <div className="">
+                                        <label className="font-bold">Description</label>
+                                        <textarea
+                                            className="border border-1 bg-white px-2 rounded-md h-full w-full"
+                                            rows={4}
+                                            value={mainRecipe.description}
+                                            onChange={(e) => {updateRecipe("description", e.target.value)}}
+                                        />
+                                    </div>
+                                    <div className="flex space-x-2">
+                                        <label className="font-bold">is Active</label>
+                                        <input
+                                            type="checkbox"
+                                            checked={mainRecipe.isActive}
+                                            onChange={() => { updateRecipe("isActive", !mainRecipe.isActive) }}
+                                        />
+                                    </div>
                                 </div>
                             </div>
 
@@ -241,15 +289,11 @@ const AddRecipe = () => {
                             <div className="w-full flex-1">
                                 <IngredientSectionList
                                     ingredientSections={ mainRecipe.ingredientSections }
-                                    ingredientSectionControlsList={ ingredientSectionControlsList }
                                     onUpdateRecipe={(newList: IngredientSectionModel[]) => {
                                         setMainRecipe((prev) => {
                                             return { ...prev, ingredientSections: newList }
                                         })
                                         updateInstructionSectionsFromIngredients(newList)
-                                    }}
-                                    onSetIngredientSectionControlsList={(newList: IngredientSectionControls[]) => {
-                                        setIngredientSectionControlsList(newList)
                                     }}
                                 />
                             </div>
@@ -260,12 +304,10 @@ const AddRecipe = () => {
                                     servingSize={mainRecipe.servingSize}
                                     servingForm={mainRecipe.servingForm}
                                 />
-                                <button
-                                    className="border border-1 px-8 py-2 rounded-lg shadow-lg w-[95%] cursor-pointer bg-thymeButton hover:bg-thymeButtonHover" 
-                                    onClick={() => calculateNutrionInformation()}
-                                >
-                                    Calculate Nutrients
-                                </button>
+                                <Button 
+                                    message={"Calculate Nutrients"} 
+                                    onClickFn={ () => calculateNutritionInformation() } 
+                                />
                                 {
                                     displayNFLoading &&
                                     (
@@ -309,23 +351,13 @@ const AddRecipe = () => {
                     </div>
 
                     <div className="flex justify-center mt-4">
-                        <button 
-                            className="border border-1 px-8 py-2 rounded-lg shadow-lg bg-thymeButton" 
-                            onClick={() => uploadRecipe()}
-                        >
-                            Submit
-                        </button>
-                    </div>
-                </form>
-                
-                {/* Sample Display */}
-                <div className="px-4 flex-1">
-                    Sample Display
-
-                    <div>
-
+                        <Button 
+                            message={"Submit"} 
+                            onClickFn={ () => uploadRecipe() } 
+                        />
                     </div>
                 </div>
+                
             </div>
            
         </div>

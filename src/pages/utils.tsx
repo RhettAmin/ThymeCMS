@@ -1,4 +1,4 @@
-import { Ingredient } from "@/models/recipeModels"
+// import { Ingredient } from "@/models/recipeModels"
 
 export const ingredientTypeOptions = [
     { label: "Other (cloves, box, item)", value: 0 },
@@ -11,15 +11,15 @@ export type SectionNameUpdate = {
     index: number
 }
 
-export type MicronutrientDisplay = {
-    ingredient: string,
-    shouldDisplayMicronutrients: boolean
-}
+// export type MicronutrientDisplay = {
+//     ingredient: string,
+//     shouldDisplayMicronutrients: boolean
+// }
 
-export type IngredientSectionControls = {
-    searchValue: string
-    lastSearchedValue: string
-    ingredients: Ingredient[]
-    micronutrientDisplay: MicronutrientDisplay[]
-    page: number
-}
+// export type IngredientSectionControls = {
+//     searchValue: string
+//     lastSearchedValue: string
+//     ingredients: Ingredient[]
+//     micronutrientDisplay: MicronutrientDisplay[]
+//     page: number
+// }

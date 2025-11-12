@@ -1,5 +1,6 @@
 export class Ingredient {
     name: string = ""
+    fdcid: number = 0
     quantity: number = 0
     measurement: string = ""
     type: number = 0
@@ -13,9 +14,23 @@ export class Ingredient {
     }
 }
 
+export class MicronutrientDisplay {
+    ingredient: string = ""
+    shouldDisplayMicronutrients: boolean = false
+}
+
+export class IngredientSectionControls {
+    searchValue: string = ""
+    lastSearchedValue: string = ""
+    ingredients: Ingredient[] = []
+    micronutrientDisplay: MicronutrientDisplay[] = []
+    page: number = 1
+}
+
 export class IngredientSectionModel {
     sectionName: string = ""
     ingredients: Ingredient[] = []
+    controls: IngredientSectionControls = new IngredientSectionControls()
 
     constructor(sectionName?: string, ingredients?: Ingredient[]) {
         this.sectionName = sectionName || ""
@@ -65,5 +80,7 @@ export class RecipeModel {
     ingredientSections: IngredientSectionModel[] = []
     instructionSections: InstructionSectionModel[] = []
     nutritionFacts: NutritionFacts = new NutritionFacts()
+    isActive: boolean = true
 }
+
 

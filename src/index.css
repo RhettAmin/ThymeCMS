@@ -6,11 +6,14 @@
 
   --color-thymeNav: #49c846;  /* Green */ 
   --color-thymeCard: #edf7ee; /* Seafoam */ 
-  --color-thymeButton: #79d482; /* grass */
-  --color-thymeButtonHover: #64c46e; /* grass */
+  --color-thymeButton: #5EA666; /* grass */
+  --color-thymeButtonHover: #45964E; /* grass */
   --color-thymeProgress: #49c846; /* Deep Green */ 
   --color-thymeProgressBackground: #bbedba; /* Pale Green */ 
-  --color-thymeNegative: #d64242;
+  --color-thymeNegative: oklch(0.5929 0.185 24.78); /*#d64242 */
+  --color-thymeNegativeHover: oklch(0.6335 0.185 24.78); /*#d64242 */
+  --color-thymeBorder: #2b7469;
+  --color-thymeRoot: #DE7840; /* brown */
   --color-navActiveHighlight: #9e2e2e; /* Red */ 
   --color-navHighlight: 	#6b2e2e; /* Wine */ 
 }
