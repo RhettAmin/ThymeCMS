@@ -57,7 +57,7 @@ const RecipeCard = ({ recipeName, recipeMainImageLink, tags, description, timeTo
                             <p>{tags.join(", ")}</p>
                         </div>
                         
-                        <div className="flex-1">
+                        <div className="flex-1 pb-2">
                             <p className="rounded-lg">{ description }</p>
                         </div>
 
