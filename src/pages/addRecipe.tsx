@@ -1,5 +1,5 @@
-import { RecipeModel, IngredientSectionModel, 
-    InstructionSectionModel, NutritionFacts, Ingredient } from "../models/recipeModels"
+import { RecipeModel, IngredientSectionModel,
+    InstructionSectionModel, Ingredient } from "../models/recipeModels"
 import InstructionSectionList from "./InstructionSectionList"
 import NutritionLabel from "../components/nutritionLabel/nutritionLabel"
 import IngredientSectionList from "./IngredientSectionList"
@@ -17,7 +17,6 @@ const AddRecipe = () => {
         const recipe = new RecipeModel()
         recipe.ingredientSections = [new IngredientSectionModel()]
         recipe.instructionSections = [new InstructionSectionModel()]
-        recipe.nutritionFacts = new NutritionFacts()
         return recipe
     }, [])
 
@@ -87,7 +86,7 @@ const AddRecipe = () => {
         .then((response: Ingredient[]) => {
             setDisplayNFLoading(false)
 
-            const totalNutritionFacts: NutritionFacts = response.reduce((acc, ingredient) => ({
+            const totalNutrition = response.reduce((acc, ingredient) => ({
                 calories: roundVals(acc.calories + ingredient.nutrients.calories),
                 fat: roundVals(acc.fat + ingredient.nutrients.fat),
                 saturatedFat: roundVals(acc.saturatedFat + ingredient.nutrients.saturatedFat),
@@ -102,11 +101,26 @@ const AddRecipe = () => {
                 iron: roundVals(acc.iron + ingredient.nutrients.iron),
                 potassium: roundVals(acc.potassium + ingredient.nutrients.potassium),
                 calcium: roundVals(acc.calcium + ingredient.nutrients.calcium)
-            }), mainRecipe.nutritionFacts)
+            }), {
+                calories: mainRecipe.calories,
+                fat: mainRecipe.fat,
+                saturatedFat: mainRecipe.saturatedFat,
+                transFat: mainRecipe.transFat,
+                carbohydrate: mainRecipe.carbohydrate,
+                fibre: mainRecipe.fibre,
+                sugars: mainRecipe.sugars,
+                protein: mainRecipe.protein,
+                cholesterol: mainRecipe.cholesterol,
+                sodium: mainRecipe.sodium,
+                vitamind: mainRecipe.vitamind,
+                iron: mainRecipe.iron,
+                potassium: mainRecipe.potassium,
+                calcium: mainRecipe.calcium
+            })
 
             setMainRecipe({
                 ...mainRecipe,
-                nutritionFacts: totalNutritionFacts,
+                ...totalNutrition,
                 ingredientSections: mainRecipe.ingredientSections.map(section => ({
                     ...section,
                     ingredients: section.ingredients.map(ingredient => {
@@ -299,7 +313,7 @@ const AddRecipe = () => {
                             </div>
                             <div className="flex flex-col justify-center space-y-4 items-center">
                                 <NutritionLabel
-                                    nutritionFacts={mainRecipe.nutritionFacts}
+                                    nutritionFacts={mainRecipe}
                                     totalServings={mainRecipe.totalServings}
                                     servingSize={mainRecipe.servingSize}
                                     servingForm={mainRecipe.servingForm}

@@ -79,7 +79,20 @@ export class RecipeModel {
     updatedDate: string = ""
     ingredientSections: IngredientSectionModel[] = []
     instructionSections: InstructionSectionModel[] = []
-    nutritionFacts: NutritionFacts = new NutritionFacts()
+    calories: number = 0
+    fat: number = 0
+    saturatedFat: number = 0
+    transFat: number = 0
+    carbohydrate: number = 0
+    fibre: number = 0
+    sugars: number = 0
+    protein: number = 0
+    cholesterol: number = 0
+    sodium: number = 0
+    vitamind: number = 0
+    iron: number = 0
+    potassium: number = 0
+    calcium: number = 0
     isActive: boolean = true
 }
 
