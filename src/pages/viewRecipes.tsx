@@ -10,11 +10,17 @@ const ViewRecipes = () => {
     // Change this to store the recent paginated values
     const [allRecipes, setAllRecipes] = useState<RecipeModel[]>([])
 
+    const loadRecipes = async () => {
+        await BackendAPI.getRecipes().then((recipes: RecipeModel[]) => {
+            setAllRecipes(recipes)
+        }).catch((error) => {
+            console.log("error: ", error)
+        })
+    }
+
     // Add function to call backend API to get all recipes on start
     useEffect(() => {
-        BackendAPI.getRecipes().then((recipes: RecipeModel[]) => {
-            setAllRecipes(recipes)
-        })
+        loadRecipes()
     }, [])
     
     return (
@@ -29,7 +35,8 @@ const ViewRecipes = () => {
                     allRecipes.map((recipe: RecipeModel, index: number) => 
                         <li key={index} className="col-span-1">
                             <RecipeCard 
-                                recipeName={recipe.recipeName} 
+                                recipeId={recipe.recipeId}
+                                recipeName={recipe.name} 
                                 recipeMainImageLink={recipe.mainImageLink}
                                 tags={recipe.tags} 
                                 description={recipe.description} 

@@ -15,8 +15,8 @@ const Navigation = () => {
                     View Recipes
                 </Link>
                 <Link 
-                    className={`w-44 font-bold py-4 ${ location.pathname === '/addrecipe' ? 'bg-navActiveHighlight' : ''} `} 
-                    to="/addrecipe"
+                    className={`w-44 font-bold py-4 ${ location.pathname === '/recipeEditor' ? 'bg-navActiveHighlight' : ''} `} 
+                    to="/recipeEditor"
                 >
                     Add Recipes
                 </Link>

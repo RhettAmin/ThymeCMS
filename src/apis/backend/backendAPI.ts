@@ -1,17 +1,20 @@
 import axios from 'axios'
 import { RecipeModel } from '../../models/recipeModels'
-import { RecipeDTO } from '../../models/recipeMongo'
-import { convertRecipeDTOToRecipe, convertRecipeToRecipeDTO, DoesRecipeExistOuput, generateID } from './utils'
+import { RecipeBaseDTO, RecipeDTO } from '../../models/recipeDB'
+import { convertRecipeDTOToRecipe, convertRecipeToRecipeBaseDTO, convertRecipeToRecipeDTO, DoesRecipeExistOuput } from './utils'
 
 export const thymeAxios = axios.create({
     baseURL: import.meta.env.VITE_BACKEND_URL,
 })
 
 const doesRecipeExist = async (recipeName: string) => {
+
+    const hashedName = await getHashedName(recipeName)
+
     return await new Promise<DoesRecipeExistOuput>( (resolve, reject) => {
         thymeAxios.get('/recipes', {
             params: {
-                recipeId: generateID(recipeName)
+                recipeId: hashedName
             }
         })
         .then(response => {
@@ -29,25 +32,37 @@ const doesRecipeExist = async (recipeName: string) => {
     })
 }
 
-const getRecipe = async (recipeName: string) => {
+const getHashedName = async (recipeName: string) => {
+    return await new Promise<string>( (resolve, reject) => {
+
+        thymeAxios.get(`utils/hashedName/`+recipeName)
+        .then(async response => {
+            console.log("HashedName Response from API: ", response)
+
+            if (response.status == 200) {
+                const hashedName: string = response.data
+                resolve(hashedName)
+            } else {
+                reject("Received unexpected response code")
+            }
+        }).catch((error) => {
+            console.error(error)
+            reject(error)
+        })
+    })
+}
+
+const getRecipe = async (recipeId: string) => {
     return await new Promise<RecipeModel>( (resolve, reject) => {
 
-        const id = generateID(recipeName)
-        console.log("Generated id: ", id)
-        thymeAxios.get('/recipes', {
-            params: {
-                recipeId: id
-            }
-        })
+        thymeAxios.get(`/recipes/`+recipeId)
         .then(async response => {
             console.log("Response from API: ", response, response.data)
-            // We're getting a single recipe here. 
-            // The API call returns it as a list so we grab the first value
-            if (response.data.status_code == "200") {
-                const responseObj: RecipeDTO = response.data.recipe_list[0] 
 
+            if (response.status == 200) {
+                const responseObj: RecipeDTO = response.data.data
                 const recipe: RecipeModel = await convertRecipeDTOToRecipe(responseObj)
-                console.log("returning recipe: ", recipe)
+                // console.log("returning recipe: ", recipe)
                 resolve(recipe)
             } else if (response.data.status_code == "404") {
                 resolve (new RecipeModel())
@@ -63,11 +78,11 @@ const getRecipe = async (recipeName: string) => {
 
 const getRecipes = async () => {
     return await new Promise<RecipeModel[]>( (resolve, reject) => {
-        thymeAxios.get('/recipes', {})
+        thymeAxios.get('/recipes/', {})
         .then(response => {
             console.log("Response from API: ", response.data)
-            const responseObj: RecipeDTO[] = response.data.recipe_list 
-            
+            const responseObj: RecipeDTO[] = response.data.recipes
+            console.log("response: ", responseObj)
             const convertedResponse: RecipeModel[] = []
             responseObj.map((recipe: RecipeDTO) => {
                 convertRecipeDTOToRecipe(recipe).then((recipeObj: RecipeModel) => {
@@ -113,17 +128,46 @@ const postRecipe = async (recipe: RecipeModel) => {
     })
 }
 
-const updateRecipe = async (recipe: RecipeModel) => {
-    return await new Promise<void>( (resolve, reject) => {
-        console.log("recipe uploading:", recipe)
+// const updateRecipe = async (recipe: RecipeModel) => {
+//     return await new Promise<void>( (resolve, reject) => {
+//         console.log("recipe uploading:", recipe)
 
-        let postingRecipe: RecipeDTO | undefined = undefined
-        convertRecipeToRecipeDTO(recipe).then((response) => {
+//         let postingRecipe: RecipeDTO | undefined = undefined
+//         // convertRecipeToRecipeDTO(recipe).then((response) => {
+//         //     postingRecipe = response
+//         //     console.log("Sending Recipe: ", postingRecipe)
+//         //     if (postingRecipe) {
+//         //         thymeAxios.patch(
+//         //             '/recipes', 
+//         //             postingRecipe
+//         //         )
+//         //         .then(response => {
+//         //             console.log(response)
+//         //             resolve()
+//         //         })
+//         //         .catch(error => {
+//         //             // your action on error success
+//         //             console.error(error)
+//         //         })
+//         //     }
+//         // }).catch((error) => {
+//         //     console.log(error)
+//         //     reject(error)
+//         // })
+//     })
+// }
+
+const updateRecipeBase = async (recipe: RecipeModel) => {
+    return await new Promise<void>( (resolve, reject) => {
+        // console.log("recipe uploading:", recipe)
+
+        let postingRecipe: RecipeBaseDTO | undefined = undefined
+        convertRecipeToRecipeBaseDTO(recipe).then((response) => {
             postingRecipe = response
-            console.log("Sending Recipe: ", postingRecipe)
+            // console.log("Sending Recipe: ", postingRecipe)
             if (postingRecipe) {
-                thymeAxios.patch(
-                    '/recipes', 
+                thymeAxios.put(
+                    '/recipes/base', 
                     postingRecipe
                 )
                 .then(response => {
@@ -146,7 +190,7 @@ const updateRecipe = async (recipe: RecipeModel) => {
 
 
 const BackendAPI = {
-    doesRecipeExist, postRecipe, getRecipe, getRecipes, updateRecipe
+    doesRecipeExist, postRecipe, getRecipe, getRecipes, updateRecipeBase, getHashedName
 }
 
 export default BackendAPI

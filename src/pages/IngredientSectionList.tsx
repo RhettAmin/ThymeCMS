@@ -99,7 +99,7 @@ const IngredientSectionList = ({
                         ...section,
                         ingredients: section.ingredients.map((ingredient: Ingredient, iIndex: number) => 
                             iIndex === ingredientIndex ? 
-                                { ...ingredient, nutrients: { ...ingredient.nutrients, [nutrientKey]: value } } : 
+                                { ...ingredient, nutrients: { ...ingredient, [nutrientKey]: value } } : 
                                 ingredient
                         )
                     } : 
@@ -297,19 +297,19 @@ const IngredientSectionList = ({
                                                                     <div className="flex flex-row space-x-4">
                                                                         <div className="space-x-2">   
                                                                             <label className="font-bold">Calories</label>
-                                                                            <label>{ ingredient.nutrients.calories }</label>
+                                                                            <label>{ ingredient.calories }</label>
                                                                         </div>
                                                                         <div className="space-x-2">   
                                                                             <label className="font-bold">Protein</label>
-                                                                            <label>{ ingredient.nutrients.protein }</label>
+                                                                            <label>{ ingredient.protein }</label>
                                                                         </div>
                                                                         <div className="space-x-2">   
                                                                             <label className="font-bold">Carbs</label>
-                                                                            <label>{ ingredient.nutrients.carbohydrate }</label>
+                                                                            <label>{ ingredient.carbohydrate }</label>
                                                                         </div>
                                                                         <div className="space-x-2">   
                                                                             <label className="font-bold">Fat</label>
-                                                                            <label>{ ingredient.nutrients.fat }</label>
+                                                                            <label>{ ingredient.fat }</label>
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -386,7 +386,7 @@ const IngredientSectionList = ({
                                                                             <label className="font-bold">Calories</label>
                                                                             <input
                                                                                 placeholder="0"
-                                                                                value={ingredient.nutrients.calories}
+                                                                                value={ingredient.calories}
                                                                                 onChange={(e) => updateIngredientNutrientValue(SIndex, ingIndex, 'calories', e.target.value)}
                                                                                 className="p-1 ml-2 border bg-white rounded-md w-full"
                                                                             />
@@ -395,7 +395,7 @@ const IngredientSectionList = ({
                                                                             <label className="font-bold">Protein</label>
                                                                             <input
                                                                                 placeholder="0"
-                                                                                value={ingredient.nutrients.protein}
+                                                                                value={ingredient.protein}
                                                                                 onChange={(e) => updateIngredientNutrientValue(SIndex, ingIndex, 'protein', e.target.value)}
                                                                                 className="p-1 ml-2 border bg-white rounded-md w-full"
                                                                             />
@@ -406,7 +406,7 @@ const IngredientSectionList = ({
                                                                             <label className="font-bold">Carbohydrates</label>
                                                                             <input
                                                                                 placeholder="0"
-                                                                                value={ingredient.nutrients.carbohydrate}
+                                                                                value={ingredient.carbohydrate}
                                                                                 onChange={(e) => updateIngredientNutrientValue(SIndex, ingIndex, 'carbohydrate', e.target.value)}
                                                                                 className="p-1 ml-2 border bg-white rounded-md w-full"
                                                                             />
@@ -415,7 +415,7 @@ const IngredientSectionList = ({
                                                                             <label className="font-bold">Fat</label>
                                                                             <input
                                                                                 placeholder="0"
-                                                                                value={ingredient.nutrients.fat}
+                                                                                value={ingredient.fat}
                                                                                 onChange={(e) => updateIngredientNutrientValue(SIndex, ingIndex, 'fat', e.target.value)}
                                                                                 className="p-1 ml-2 border bg-white rounded-md w-full"
                                                                             />
@@ -451,7 +451,7 @@ const IngredientSectionList = ({
                                                                                 <label className="font-bold">Saturated Fat</label>
                                                                                 <input
                                                                                     placeholder="0"
-                                                                                    value={ingredient.nutrients.saturatedFat}
+                                                                                    value={ingredient.saturatedFat}
                                                                                     onChange={(e) => updateIngredientNutrientValue(SIndex, ingIndex, 'saturatedFat', e.target.value)}
                                                                                     className="p-1 ml-2 border bg-white rounded-md w-full"
                                                                                 />
@@ -460,7 +460,7 @@ const IngredientSectionList = ({
                                                                                 <label className="font-bold">Trans Fat</label>
                                                                                 <input
                                                                                     placeholder="0"
-                                                                                    value={ingredient.nutrients.transFat}
+                                                                                    value={ingredient.transFat}
                                                                                     onChange={(e) => updateIngredientNutrientValue(SIndex, ingIndex, 'transFat', e.target.value)}
                                                                                     className="p-1 ml-2 border bg-white rounded-md w-full"
                                                                                 />
@@ -469,7 +469,7 @@ const IngredientSectionList = ({
                                                                                 <label className="font-bold">Fibre</label>
                                                                                 <input
                                                                                     placeholder="0"
-                                                                                    value={ingredient.nutrients.fibre}
+                                                                                    value={ingredient.fibre}
                                                                                     onChange={(e) => updateIngredientNutrientValue(SIndex, ingIndex, 'fibre', e.target.value)}
                                                                                     className="p-1 ml-2 border bg-white rounded-md w-full"
                                                                                 />
@@ -478,7 +478,7 @@ const IngredientSectionList = ({
                                                                                 <label className="font-bold">Sugar</label>
                                                                                 <input
                                                                                     placeholder="0"
-                                                                                    value={ingredient.nutrients.sugars}
+                                                                                    value={ingredient.sugars}
                                                                                     onChange={(e) => updateIngredientNutrientValue(SIndex, ingIndex, 'sugars', e.target.value)}
                                                                                     className="p-1 ml-2 border bg-white rounded-md w-full"
                                                                                 />
@@ -487,7 +487,7 @@ const IngredientSectionList = ({
                                                                                 <label className="font-bold">Cholesterol</label>
                                                                                 <input
                                                                                     placeholder="0"
-                                                                                    value={ingredient.nutrients.cholesterol}
+                                                                                    value={ingredient.cholesterol}
                                                                                     onChange={(e) => updateIngredientNutrientValue(SIndex, ingIndex, 'cholesterol', e.target.value)}
                                                                                     className="p-1 ml-2 border bg-white rounded-md w-full"
                                                                                 />
@@ -496,7 +496,7 @@ const IngredientSectionList = ({
                                                                                 <label className="font-bold">Sodium</label>
                                                                                 <input
                                                                                     placeholder="0"
-                                                                                    value={ingredient.nutrients.sodium}
+                                                                                    value={ingredient.sodium}
                                                                                     onChange={(e) => updateIngredientNutrientValue(SIndex, ingIndex, 'sodium', e.target.value)}
                                                                                     className="p-1 ml-2 border bg-white rounded-md w-full"
                                                                                 />
@@ -505,7 +505,7 @@ const IngredientSectionList = ({
                                                                                 <label className="font-bold">Vitamin D</label>
                                                                                 <input
                                                                                     placeholder="0"
-                                                                                    value={ingredient.nutrients.vitamind}
+                                                                                    value={ingredient.vitaminD}
                                                                                     onChange={(e) => updateIngredientNutrientValue(SIndex, ingIndex, 'vitamind', e.target.value)}
                                                                                     className="p-1 ml-2 border bg-white rounded-md w-full"
                                                                                 />
@@ -514,7 +514,7 @@ const IngredientSectionList = ({
                                                                                 <label className="font-bold">Iron</label>
                                                                                 <input
                                                                                     placeholder="0"
-                                                                                    value={ingredient.nutrients.iron}
+                                                                                    value={ingredient.iron}
                                                                                     onChange={(e) => updateIngredientNutrientValue(SIndex, ingIndex, 'iron', e.target.value)}
                                                                                     className="p-1 ml-2 border bg-white rounded-md w-full"
                                                                                 />
@@ -523,7 +523,7 @@ const IngredientSectionList = ({
                                                                                 <label className="font-bold">Potassium</label>
                                                                                 <input
                                                                                     placeholder="0"
-                                                                                    value={ingredient.nutrients.potassium}
+                                                                                    value={ingredient.potassium}
                                                                                     onChange={(e) => updateIngredientNutrientValue(SIndex, ingIndex, 'potassium', e.target.value)}
                                                                                     className="p-1 ml-2 border bg-white rounded-md w-full"
                                                                                 />
@@ -532,7 +532,7 @@ const IngredientSectionList = ({
                                                                                 <label className="font-bold">Calcium</label>
                                                                                 <input
                                                                                     placeholder="0"
-                                                                                    value={ingredient.nutrients.calcium}
+                                                                                    value={ingredient.calcium}
                                                                                     onChange={(e) => updateIngredientNutrientValue(SIndex, ingIndex, 'calcium', e.target.value)}
                                                                                     className="p-1 ml-2 border bg-white rounded-md w-full"
                                                                                 />

@@ -1,5 +1,5 @@
 import Button from "@/components/button"
-import { IngredientSectionModel, InstructionSectionModel } from "../models/recipeModels"
+import { IngredientSectionModel, InstructionSectionModel, InstructionSteps } from "../models/recipeModels"
 
 
 type displayIngredientSectionType = {
@@ -37,12 +37,17 @@ const InstructionSectionList = ({instructionSections, ingredientSections, onUpda
     }
 
     const updateStepInSection = (sectionIndex: number, stepIndex: number, newValue: string) => {
-        onUpdateRecipe(instructionSections.map((section, index) => {
-            if (index === sectionIndex) {
+        onUpdateRecipe(instructionSections.map((section: InstructionSectionModel, index) => {
+            if (section.sectionId === sectionIndex) {
                     return {
                         ...section,  
-                        steps: section.steps.map((step, sIdx) => 
-                            sIdx === stepIndex ? newValue : step  
+                        steps: section.steps.map((step: InstructionSteps) => 
+                            step.sortOrder === stepIndex ? {
+                                stepId: index,
+                                stepText: newValue,
+                                sectionId: sectionIndex,
+                                sortOrder: index
+                            } : step  
                         )
                     }
                 }
@@ -55,7 +60,12 @@ const InstructionSectionList = ({instructionSections, ingredientSections, onUpda
             if (index === sectionIndex) {
                 return {
                     ...section,  
-                    steps: [...section.steps, ""]
+                    steps: [...section.steps, {
+                        stepId: 0,
+                        stepText: "",
+                        sectionId: 0,
+                        sortOrder: 0
+                    }]
                 }
             }
             return section
@@ -106,7 +116,7 @@ const InstructionSectionList = ({instructionSections, ingredientSections, onUpda
                                     <div className="pb-2 relative flex-auto flex flex-col">
                                         <label>Image Reference</label>
                                         <input
-                                            value={ section.image ? section.image : ""}
+                                            value={ section.imageLink ? section.imageLink : ""}
                                             placeholder="Image Link"
                                             onChange={(e) => updateSectionImageRef(SIndex, e.target.value)}
                                             className="bg-white border border-1 rounded-md px-1 py-2 w-full"
@@ -144,18 +154,18 @@ const InstructionSectionList = ({instructionSections, ingredientSections, onUpda
 
                                     <div className="">
                                         {
-                                            section.steps.map((step: string, stepIndex: number) => {
+                                            section.steps.map((step: InstructionSteps) => {
                                                 return (
-                                                    <div key={ stepIndex } className="flex flex-row items-center my-4">
-                                                        <span className="text-lg font-bold">{stepIndex+1}</span>
+                                                    <div key={ step.sortOrder } className="flex flex-row items-center my-4">
+                                                        <span className="text-lg font-bold">{step.sortOrder+1}</span>
                                                         <input
-                                                            value={step}
-                                                            placeholder={`step ${stepIndex+1}`}
-                                                            onChange={(e) => updateStepInSection(SIndex, stepIndex, e.target.value)}
+                                                            value={step.stepText}
+                                                            placeholder={`step ${step.sortOrder+1}`}
+                                                            onChange={(e) => updateStepInSection(SIndex, step.sortOrder, e.target.value)}
                                                             className="bg-white border border-1 rounded-md mx-4 px-1 py-2 w-full" 
                                                         />
                                                         <div 
-                                                            onClick={() => removeStepFromSection(SIndex, stepIndex)}
+                                                            onClick={() => removeStepFromSection(SIndex, step.sortOrder)}
                                                             className="bg-red-300 h-1/2 p-1 rounded-md flex items-center justify-center font-bold cursor-pointer">
                                                             <img width={10} height={10} src="minus.png" alt="Logo" />
                                                         </div>

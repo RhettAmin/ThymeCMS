@@ -1,6 +1,8 @@
+import { useEffect } from "react"
 import { Link } from "react-router-dom"
 
 type RecipeCardInput =  {
+    recipeId: string
     recipeName: string
     recipeMainImageLink: string
     tags: string[]
@@ -8,7 +10,11 @@ type RecipeCardInput =  {
     timeToPlate: number
 }
 
-const RecipeCard = ({ recipeName, recipeMainImageLink, tags, description, timeToPlate } : RecipeCardInput) => {
+const RecipeCard = ({ recipeId, recipeName, recipeMainImageLink, tags, description, timeToPlate } : RecipeCardInput) => {
+
+    useEffect(() => {
+        console.log("inputs: ", recipeId, recipeName, recipeMainImageLink, tags, description, timeToPlate)
+    }, [description, recipeId, recipeMainImageLink, recipeName, tags, timeToPlate])
     
     const getFontSize = (text: string) => {
         const length = text.length;
@@ -47,7 +53,7 @@ const RecipeCard = ({ recipeName, recipeMainImageLink, tags, description, timeTo
                 <div className="flex flex-col flex-1 pt-2 h-fit space-y-2">
                     <div className=" flex-none border-2 border-thymeButton -mx-2 -mt-2 px-2 rounded-[0.65vw] hover:border-thymeButtonHover">
                         <div className="bg-gradient-to-r from-thymeButton to-thymeButton hover:from-thymeButtonHover hover:to-thymeButton transition-all duration-200 -mx-2 px-2 text-center hover:text-white rounded-md">
-                            <Link to={`/addRecipe?recipeName=${recipeName}`}>
+                            <Link to={`/recipeEditor?recipeId=${recipeId}`}>
                                 <p className="font-bold">Edit</p>
                             </Link>
                         </div>

@@ -1,10 +1,13 @@
-import { Ingredient, IngredientSectionControls, IngredientSectionModel, InstructionSectionModel, NutritionFacts, RecipeModel } from "@/models/recipeModels"
-import { IngredientDTO, IngredientSectionDTO, InstructionSectionDTO, RecipeDTO } from "@/models/recipeMongo"
-import { Md5 } from "ts-md5"
+import { Ingredient, IngredientSectionControls, IngredientSectionModel, 
+    InstructionSectionModel, InstructionSteps, RecipeModel
+} from "@/models/recipeModels"
+import { IngredientDTO, IngredientSectionDTO, InstructionSectionDTO, RecipeBaseDTO, RecipeDTO, Steps } from "@/models/recipeDB"
+import { v5 as uuidv5 } from 'uuid'
 
 
 export const generateID = (recipeName: string) => {
-    return Md5.hashStr(recipeName)
+    const THYME_NAMESPACE = "1f0bdcf7-7bb0-5307-b10e-1dce378d1473";
+    return uuidv5(recipeName, THYME_NAMESPACE)
 }
 
 export type DoesRecipeExistOuput = {
@@ -16,19 +19,18 @@ export const convertRecipeToRecipeDTO = async(recipe: RecipeModel) => {
     try {
         const recipeDTO = new RecipeDTO()
 
-        recipeDTO.recipe_id = generateID(recipe.recipeName)
-        recipeDTO.name = recipe.recipeName
+        recipeDTO.recipe_id = generateID(recipe.name)
+        recipeDTO.name = recipe.name
         recipeDTO.description = recipe.description
-        recipeDTO.is_active = recipe.isActive
 
         // Main Images
         recipeDTO.hero_image_link = recipe.heroImageLink
         recipeDTO.main_image_link = recipe.mainImageLink
 
         // Serving
-        recipeDTO.serving.form = recipe.servingForm
-        recipeDTO.serving.serving_size = recipe.servingSize
-        recipeDTO.serving.total_servings = recipe.totalServings
+        recipeDTO.serving_form = recipe.servingForm
+        recipeDTO.serving_size = recipe.servingSize
+        recipeDTO.total_servings = recipe.totalServings
 
         recipeDTO.tags = recipe.tags
         recipeDTO.time_to_plate = recipe.timeToPlate
@@ -46,58 +48,71 @@ export const convertRecipeToRecipeDTO = async(recipe: RecipeModel) => {
                 const ingredient = new IngredientDTO()
 
                 ingredient.name = ing.name
-                ingredient.fdcid = ing.fdcid
                 ingredient.measurement = ing.measurement
                 ingredient.quantity = ing.quantity
                 ingredient.type = ing.type
-                ingredient.nutrients = {
-                    ...ingredient.nutrients,
-                    saturated_fat: ing.nutrients.saturatedFat,
-                    trans_fat: ing.nutrients.transFat,
-                    vitamin_d: ing.nutrients.vitamind
-                }
+                ingredient.calories = ing.type
+                ingredient.fat = ing.fat
+                ingredient.saturated_fat = ing.saturatedFat
+                ingredient.trans_fat = ing.transFat
+                ingredient.carbohydrate = ing.carbohydrate
+                ingredient.fibre = ing.fibre
+                ingredient.sugars = ing.sugars
+                ingredient.protein = ing.protein
+                ingredient.cholesterol = ing.cholesterol
+                ingredient.sodium = ing.sodium
+                ingredient.vitamin_d = ing.vitaminD
+                ingredient.iron = ing.iron
+                ingredient.potassium = ing.potassium
+                ingredient.calcium = ing.calcium
 
                 i_section.ingredients.push(ingredient)
             })
 
             ing_Sections.push(i_section)
         })
-        recipeDTO.ingredient_section = ing_Sections
+        recipeDTO.ingredient_sections = ing_Sections
 
         const instr_section: InstructionSectionDTO[] = []
         
         // Instruction Section
         console.info("Converting Instructions to InstructionDTO")
-        recipe.instructionSections.forEach((section) => {
+        recipe.instructionSections.forEach((section: InstructionSectionModel) => {
             const i_section = new InstructionSectionDTO()
             
             i_section.section_name = section.sectionName
-            i_section.image_link = section.image
+            i_section.image_link = section.imageLink
             
-            const steps: string[] = []
-            section.steps.forEach((step) => {
+            const steps: Steps[] = []
+            section.steps.forEach((instructionStep: InstructionSteps) => {
+                const step: Steps = {
+                    step_id: instructionStep.stepId,
+                    step_text: instructionStep.stepText,
+                    section_id: instructionStep.sectionId,
+                    sort_order: instructionStep.sortOrder
+                }
                 steps.push(step)
             })
             i_section.steps = steps
             instr_section.push(i_section)
         })
-        recipeDTO.instruction_section = instr_section
+        recipeDTO.instruction_sections = instr_section
 
         // NutritionFacts
-        recipeDTO.nutrition_facts.calcium = recipe.nutritionFacts.calcium
-        recipeDTO.nutrition_facts.calories = recipe.nutritionFacts.calories
-        recipeDTO.nutrition_facts.carbohydrate = recipe.nutritionFacts.carbohydrate
-        recipeDTO.nutrition_facts.cholesterol = recipe.nutritionFacts.cholesterol
-        recipeDTO.nutrition_facts.fat = recipe.nutritionFacts.fat
-        recipeDTO.nutrition_facts.fibre = recipe.nutritionFacts.fibre
-        recipeDTO.nutrition_facts.iron = recipe.nutritionFacts.iron
-        recipeDTO.nutrition_facts.potassium = recipe.nutritionFacts.potassium
-        recipeDTO.nutrition_facts.protein = recipe.nutritionFacts.protein
-        recipeDTO.nutrition_facts.saturated_fat = recipe.nutritionFacts.saturatedFat
-        recipeDTO.nutrition_facts.sodium = recipe.nutritionFacts.sodium
-        recipeDTO.nutrition_facts.sugars = recipe.nutritionFacts.sugars
-        recipeDTO.nutrition_facts.trans_fat = recipe.nutritionFacts.transFat
-        recipeDTO.nutrition_facts.vitamin_d = recipe.nutritionFacts.vitamind
+        recipeDTO.calcium = recipe.calcium
+        recipeDTO.calories = recipe.calories
+        recipeDTO.carbohydrate = recipe.carbohydrate
+        recipeDTO.cholesterol = recipe.cholesterol
+        recipeDTO.fat = recipe.fat
+        recipeDTO.fibre = recipe.fibre
+        recipeDTO.iron = recipe.iron
+        recipeDTO.potassium = recipe.potassium
+        recipeDTO.protein = recipe.protein
+        recipeDTO.saturated_fat = recipe.saturatedFat
+        recipeDTO.sodium = recipe.sodium
+        recipeDTO.sugars = recipe.sugars
+        recipeDTO.trans_fat = recipe.transFat
+        recipeDTO.vitamin_d = recipe.vitaminD
 
         return await recipeDTO
     } catch (err) {
@@ -109,19 +124,19 @@ export const convertRecipeToRecipeDTO = async(recipe: RecipeModel) => {
 export const convertRecipeDTOToRecipe = async(recipeDTO: RecipeDTO) => {
     try {
         const recipe = new RecipeModel()
-
-        recipe.recipeName = recipeDTO.name
+        recipe.recipeId = recipeDTO.recipe_id
+        recipe.name = recipeDTO.name
         recipe.description = recipeDTO.description
-        recipe.isActive = recipeDTO.is_active ? recipeDTO.is_active : false
+        // recipe.isActive = recipeDTO.is_active ? recipeDTO.is_active : false
 
         // Main Images
         recipe.heroImageLink = recipeDTO.hero_image_link 
         recipe.mainImageLink = recipeDTO.main_image_link 
 
         // Serving
-        recipe.servingForm = recipeDTO.serving.form
-        recipe.servingSize = recipeDTO.serving.serving_size
-        recipe.totalServings = recipeDTO.serving.total_servings
+        recipe.servingForm = recipeDTO.serving_form
+        recipe.servingSize = recipeDTO.serving_size
+        recipe.totalServings = recipeDTO.total_servings
 
         recipe.tags = recipeDTO.tags
         recipe.timeToPlate = recipeDTO.time_to_plate
@@ -130,35 +145,46 @@ export const convertRecipeDTOToRecipe = async(recipeDTO: RecipeDTO) => {
 
         const ingSections: IngredientSectionModel[] = []
         // Ingredient Section
-        if (recipeDTO.ingredient_section) {
-            recipeDTO.ingredient_section.forEach((section: IngredientSectionDTO) => {
+        console.log("recipeDTO: ", recipeDTO)
+        if (recipeDTO.ingredient_sections) {
+            recipeDTO.ingredient_sections.forEach((section: IngredientSectionDTO) => {
+
                 const iSection = new IngredientSectionModel()
                 const control = new IngredientSectionControls()
 
+                iSection.sectionId = section.section_id
+                iSection.sortOrder = section.sort_order
                 iSection.sectionName = section.section_name
 
                 section.ingredients.forEach((ing: IngredientDTO) => {
-                    const ingredient = new Ingredient("", 0, "", 0)
-                    
-                    ingredient.name = ing.name
-                    ingredient.fdcid = ing.fdcid
-                    ingredient.measurement = ing.measurement
-                    ingredient.quantity = ing.quantity
-                    ingredient.type = ing.type
-                    if (ing.nutrients) {
-                        ingredient.nutrients = {
-                            ...ing.nutrients,
-                            saturatedFat: ing.nutrients.saturated_fat,
-                            transFat: ing.nutrients.trans_fat,
-                            vitamind: ing.nutrients.vitamin_d
-                        }
-                    } else {
-                        ingredient.nutrients = new NutritionFacts()
+                    const ingredient: Ingredient = {
+                        name: ing.name,
+                        ingredientId: ing.ingredient_id,
+                        sortOrder: ing.sort_order,
+                        quantity: ing.quantity,
+                        measurement: ing.measurement,
+                        type: ing.type,
+                        calories: ing.calories,
+                        fat: ing.fat,
+                        saturatedFat: ing.saturated_fat,
+                        transFat: ing.trans_fat,
+                        carbohydrate: ing.carbohydrate,
+                        fibre: ing.fibre,
+                        sugars: ing.sugars,
+                        protein: ing.protein,
+                        cholesterol: ing.cholesterol,
+                        sodium: ing.sodium,
+                        vitaminD: ing.vitamin_d,
+                        iron: ing.iron,
+                        potassium: ing.potassium,
+                        calcium: ing.calcium,
                     }
-
                     iSection.ingredients.push(ingredient)
 
-                    control.micronutrientDisplay.push({ingredient: ingredient.name, shouldDisplayMicronutrients: false})
+                    control.micronutrientDisplay.push({
+                        ingredient: ingredient.name, 
+                        shouldDisplayMicronutrients: false
+                    })
                 })
                 iSection.controls = control
                 ingSections.push(iSection)
@@ -169,15 +195,24 @@ export const convertRecipeDTOToRecipe = async(recipeDTO: RecipeDTO) => {
         const instrSection: InstructionSectionModel[] = []
         // Instruction Section
         console.info("Converting InstructionsDTO to Instruction")
-        if (recipeDTO.instruction_section) {
-            recipeDTO.instruction_section.forEach((section) => {
+        if (recipeDTO.instruction_sections) {
+            recipeDTO.instruction_sections.forEach((section: InstructionSectionDTO) => {
                 const iSection = new InstructionSectionModel()
                 
+                iSection.sectionId = section.section_id
+                iSection.sortOrder = section.sort_order
                 iSection.sectionName = section.section_name
-                iSection.image = section.image_link
-
-                const steps: string[] = []
-                section.steps.forEach((step) => {
+                iSection.imageLink = section.image_link
+                iSection.altText = section.alt_text
+                
+                const steps: InstructionSteps[] = []
+                section.steps.forEach((stepDTO: Steps) => {
+                    const step: InstructionSteps = {
+                        stepId: stepDTO.step_id,
+                        stepText: stepDTO.step_text,
+                        sectionId: stepDTO.section_id,
+                        sortOrder: stepDTO.sort_order
+                    } 
                     steps.push(step)
                 })
                 iSection.steps = steps
@@ -187,23 +222,67 @@ export const convertRecipeDTOToRecipe = async(recipeDTO: RecipeDTO) => {
         }
 
         // NutritionFacts
-        recipe.nutritionFacts.calcium = recipeDTO.nutrition_facts.calcium
-        recipe.nutritionFacts.calories = recipeDTO.nutrition_facts.calories
-        recipe.nutritionFacts.carbohydrate = recipeDTO.nutrition_facts.carbohydrate
-        recipe.nutritionFacts.cholesterol = recipeDTO.nutrition_facts.cholesterol
-        recipe.nutritionFacts.fat = recipeDTO.nutrition_facts.fat
-        recipe.nutritionFacts.fibre = recipeDTO.nutrition_facts.fibre
-        recipe.nutritionFacts.iron = recipeDTO.nutrition_facts.iron
-        recipe.nutritionFacts.potassium = recipeDTO.nutrition_facts.potassium
-        recipe.nutritionFacts.protein = recipeDTO.nutrition_facts.protein
-        recipe.nutritionFacts.saturatedFat = recipeDTO.nutrition_facts.saturated_fat
-        recipe.nutritionFacts.sodium = recipeDTO.nutrition_facts.sodium
-        recipe.nutritionFacts.sugars = recipeDTO.nutrition_facts.sugars
-        recipe.nutritionFacts.transFat = recipeDTO.nutrition_facts.trans_fat
-        recipe.nutritionFacts.vitamind = recipeDTO.nutrition_facts.vitamin_d
+        recipe.calcium = recipeDTO.calcium
+        recipe.calories = recipeDTO.calories
+        recipe.carbohydrate = recipeDTO.carbohydrate
+        recipe.cholesterol = recipeDTO.cholesterol
+        recipe.fat = recipeDTO.fat
+        recipe.fibre = recipeDTO.fibre
+        recipe.iron = recipeDTO.iron
+        recipe.potassium = recipeDTO.potassium
+        recipe.protein = recipeDTO.protein
+        recipe.saturatedFat = recipeDTO.saturated_fat
+        recipe.sodium = recipeDTO.sodium
+        recipe.sugars = recipeDTO.sugars
+        recipe.transFat = recipeDTO.trans_fat
+        recipe.vitaminD = recipeDTO.vitamin_d
 
         return await recipe
 
+    } catch (err) {
+        console.error(err)
+        throw err
+    }
+}
+
+export const convertRecipeToRecipeBaseDTO = async(recipe: RecipeModel) => {
+    try {
+        const recipeDTO = new RecipeBaseDTO()
+
+        recipeDTO.recipe_id = generateID(recipe.name)
+        recipeDTO.name = recipe.name
+        recipeDTO.description = recipe.description
+
+        // Main Images
+        recipeDTO.hero_image_link = recipe.heroImageLink
+        recipeDTO.main_image_link = recipe.mainImageLink
+
+        // Serving
+        recipeDTO.serving_form = recipe.servingForm
+        recipeDTO.serving_size = recipe.servingSize
+        recipeDTO.total_servings = recipe.totalServings
+
+        recipeDTO.time_to_plate = recipe.timeToPlate
+        recipeDTO.created_date = new Date().toISOString().split('T')[0]
+        recipeDTO.updated_date = new Date().toISOString().split('T')[0]
+
+        // NutritionFacts
+        recipeDTO.calcium = recipe.calcium
+        recipeDTO.calories = recipe.calories
+        recipeDTO.carbohydrate = recipe.carbohydrate
+        recipeDTO.cholesterol = recipe.cholesterol
+        recipeDTO.fat = recipe.fat
+        recipeDTO.fibre = recipe.fibre
+        recipeDTO.iron = recipe.iron
+        recipeDTO.potassium = recipe.potassium
+        recipeDTO.protein = recipe.protein
+        recipeDTO.saturated_fat = recipe.saturatedFat
+        recipeDTO.sodium = recipe.sodium
+        recipeDTO.sugars = recipe.sugars
+        recipeDTO.trans_fat = recipe.transFat
+        recipeDTO.vitamin_d = recipe.vitaminD
+
+        return await recipeDTO
     } catch (err) {
         console.error(err)
         throw err
