@@ -57,7 +57,7 @@ const getRecipe = async (recipeId: string) => {
 
         thymeAxios.get(`/recipes/`+recipeId)
         .then(async response => {
-            console.log("Response from API: ", response, response.data)
+            // console.log("Response from API: ", response, response.data)
 
             if (response.status == 200) {
                 const responseObj: RecipeDTO = response.data.data

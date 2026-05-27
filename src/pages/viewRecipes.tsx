@@ -29,11 +29,11 @@ const ViewRecipes = () => {
             
             {/* Container to store gridview for recipes */}
             {/* TODO: Pagination */}
-            <div className="w-[60%]">
-                <ul className="grid grid-cols-3 gap-x-12 gap-y-12">
-                { 
-                    allRecipes.map((recipe: RecipeModel, index: number) => 
-                        <li key={index} className="col-span-1">
+            <div className="w-full max-w-6xl px-10 flex-1 min-h-0 py-8 scrollbar-thin overflow-y-auto scrollbar-hide">
+                <ul className="flex flex-wrap justify-center gap-8">
+                {
+                    allRecipes.map((recipe: RecipeModel, index: number) =>
+                        <li key={index} className="w-80 flex-none">
                             <RecipeCard 
                                 recipeId={recipe.recipeId}
                                 recipeName={recipe.name} 

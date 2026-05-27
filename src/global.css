@@ -17,3 +17,11 @@
   --color-navActiveHighlight: #9e2e2e; /* Red */ 
   --color-navHighlight: 	#6b2e2e; /* Wine */ 
 }
+
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE/Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;             /* Chrome/Safari */
+}

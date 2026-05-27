@@ -12,9 +12,9 @@ type RecipeCardInput =  {
 
 const RecipeCard = ({ recipeId, recipeName, recipeMainImageLink, tags, description, timeToPlate } : RecipeCardInput) => {
 
-    useEffect(() => {
-        console.log("inputs: ", recipeId, recipeName, recipeMainImageLink, tags, description, timeToPlate)
-    }, [description, recipeId, recipeMainImageLink, recipeName, tags, timeToPlate])
+    // useEffect(() => {
+    //     // console.log("inputs: ", recipeId, recipeName, recipeMainImageLink, tags, description, timeToPlate)
+    // }, [description, recipeId, recipeMainImageLink, recipeName, tags, timeToPlate])
     
     const getFontSize = (text: string) => {
         const length = text.length;
@@ -35,15 +35,15 @@ const RecipeCard = ({ recipeId, recipeName, recipeMainImageLink, tags, descripti
     }
 
     return (
-        <div className="relative h-full flex flex-col col-span-1 group bg-thymeBorder rounded-lg shadow-md border-2 border-black-200 p-4 flex flex-col">
+        <div className="w-full relative h-full flex flex-col col-span-1 group bg-thymeBorder rounded-lg shadow-lg border-2 border-black-200 p-4 flex flex-col">
             <div className="border-2 border-thymeButton h-full bg-thymeCard">
-                <div className="border-2 border-thymeButton h-8 -mx-2 -mt-2 px-2 rounded-[0.65vw]">
-                    <div className="bg-thymeCard h-7 -mx-2 px-2 rounded-[0.65vw] text-center">
+                <div className="border-2 border-thymeButton h-8 -mx-2 -mt-2 px-2 rounded-md">
+                    <div className="bg-thymeCard h-7 -mx-2 px-2 rounded-sm text-center">
                         <p className={`font-bold justify-center text-center ${ getFontSize(recipeName) }`}>{ recipeName }</p>
                     </div>
                 </div>
                 {/* Image placeholder */}
-                <div className="flex w-full aspect-square items-center justify-center">
+                <div className="flex w-full aspect-[4/3] items-center justify-center">
                     {
                         recipeMainImageLink ?
                         <img className="w-full h-full object-cover" src={recipeMainImageLink}/> :
@@ -51,8 +51,8 @@ const RecipeCard = ({ recipeId, recipeName, recipeMainImageLink, tags, descripti
                     }
                 </div>
                 <div className="flex flex-col flex-1 pt-2 h-fit space-y-2">
-                    <div className=" flex-none border-2 border-thymeButton -mx-2 -mt-2 px-2 rounded-[0.65vw] hover:border-thymeButtonHover">
-                        <div className="bg-gradient-to-r from-thymeButton to-thymeButton hover:from-thymeButtonHover hover:to-thymeButton transition-all duration-200 -mx-2 px-2 text-center hover:text-white rounded-md">
+                    <div className=" flex-none border-2 border-thymeButton -mx-2 -mt-2 px-2 rounded-md hover:border-thymeButtonHover">
+                        <div className="bg-gradient-to-r from-thymeButton to-thymeButton hover:from-thymeButtonHover hover:to-thymeButton transition-all duration-200 -mx-2 px-2 text-center hover:text-white">
                             <Link to={`/recipeEditor?recipeId=${recipeId}`}>
                                 <p className="font-bold">Edit</p>
                             </Link>
