@@ -1,3 +1,4 @@
+import { CONVERSTION_TYPES } from "@/utils/utils"
 
 export class RecipeModel {
     recipeId: string = ""
@@ -8,6 +9,9 @@ export class RecipeModel {
     createdDate: string = ""
     updatedDate: string = ""
     timeToPlate: number = 0
+    totalTime: number = 0
+    prepTime: number = 0
+    cookTime:number = 0
     totalServings: number = 0
     servingSize: number = 0
     servingForm: string = ""
@@ -29,6 +33,10 @@ export class RecipeModel {
     notes: NotesModel[] = []
     ingredientSections: IngredientSectionModel[] = []
     instructionSections: InstructionSectionModel[] = []
+
+    constructor(data?: Partial<RecipeModel>) {
+        Object.assign(this, data)
+    }
 }
 
 export class NotesModel {
@@ -40,11 +48,13 @@ export class NotesModel {
 
 export class Ingredient {
     name: string = ""
-    ingredientId: number = 0
+    id: number = 0
+    fdcId: number = 0
     sortOrder: number = 0
     quantity: number = 0
     measurement: string = ""
-    type: number = 0
+    gramWeight: number = 0
+    conversionType: CONVERSTION_TYPES = CONVERSTION_TYPES.OTHER
     calories: number = 0
     fat: number = 0
     saturatedFat: number = 0
@@ -59,6 +69,10 @@ export class Ingredient {
     iron: number = 0
     potassium: number = 0
     calcium: number = 0
+
+    constructor(data?: Partial<RecipeModel>) {
+        Object.assign(this, data)
+    }
 }
 
 export class MicronutrientDisplay {
@@ -72,6 +86,7 @@ export class IngredientSectionControls {
     ingredients: Ingredient[] = []
     micronutrientDisplay: MicronutrientDisplay[] = []
     page: number = 1
+    isOpen: boolean = true
 }
 
 export class IngredientSectionModel {
@@ -92,6 +107,7 @@ export class InstructionSectionModel {
     sectionName: string = ""
     imageLink: string = ""
     altText: string = ""
+    isOpen: boolean = true
     steps: InstructionSteps[] = []
 }
 

@@ -31,6 +31,7 @@ export class RecipeDTO {
 }
 
 export class RecipeBaseDTO {
+    id: string = ""
     recipe_id: string = ""
     name: string = ""
     description: string = ""
@@ -76,15 +77,21 @@ export class IngredientSectionDTO {
     sort_order: number = 0
     section_name: string = ""
     ingredients: IngredientDTO[] = []
+
+    constructor(data?: Partial<IngredientSectionDTO>) {
+        Object.assign(this, data)
+    }
 }
 
 export class IngredientDTO {
     name: string = ""
-    ingredient_id: number = 0
+    fdc_id: number = 0
+    id: number = 0
     sort_order: number = 0
     quantity: number = 0
     measurement: string = ""
-    type: number = 0
+    gram_weight: number = 0
+    conversion_type: string = ""
     calories: number = 0
     fat: number = 0
     saturated_fat: number = 0
@@ -99,6 +106,10 @@ export class IngredientDTO {
     iron: number = 0
     potassium: number = 0
     calcium: number = 0
+
+    constructor(data?: Partial<IngredientSectionDTO>) {
+        Object.assign(this, data)
+    }
 }
 
 export class InstructionSectionDTO {

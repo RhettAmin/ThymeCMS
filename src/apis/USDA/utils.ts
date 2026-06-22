@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Ingredient, NutritionFacts } from "@/models/recipeModels"
+import { FoodModel } from "@/models/USDA"
 
 export type NutrientCodeType = {
     name: string
@@ -33,23 +34,24 @@ export const convertToIngredientListAbridged = (responseData: any): Ingredient[]
     const newList: Ingredient[] = []
 
     // Pull out the Data List from the Response
-    const data = responseData["data"]
-
+    const data:FoodModel[] = responseData["data"]
+    
     if (data) {
         data.map((item: any) => {
-            console.log("ID: ", item["fdcId"] )
-            const ing: Ingredient = new Ingredient("", 0, "", 0)
+            const ing: Ingredient = new Ingredient()
             ing.name = item["description"] ? item["description"] : "NULL"
-            ing.fdcid = item["fdcId"] ? item["fdcId"] : ""
+            ing.fdcId = item["fdcId"] ? item["fdcId"] : ""
 
             // Nutrients
             // Copy nutrientCodes to new object
             const nutrients: NutrientCodeType[] = [...nutrientCodes]
-            // Get values
-            if (item["foodNutrients"]) {
+
+            const extractedNutrients = item["foodNutrients"]
+            // Extract values to list
+            if (extractedNutrients) {
                 const nutrientMap: Record<string, any> = {}
 
-                for (const it of item["foodNutrients"]) {
+                for (const it of extractedNutrients) {
                     if (it.number != null) {
                         nutrientMap[it.number] = it
                     }
@@ -57,24 +59,12 @@ export const convertToIngredientListAbridged = (responseData: any): Ingredient[]
 
                 nutrients.forEach((nutrient) => {
                     const match = nutrientMap[nutrient.nutrientNumber]
-                    
                     if (match) {
-                        nutrient.amount = match.amount ?? nutrient.amount
+                        (ing as any)[nutrient.name] = match.amount
+                        ing.measurement = match.unitName
                     }
                 })
             }
-            
-            //  Set new Ingredients NutritonFacts
-            const facts = new NutritionFacts()
-
-            nutrients.forEach(({ name, amount }) => {
-                // Only copy if the property exists on the NutritionFacts instance
-                if (name in facts) {
-                    (facts as any)[name] = amount
-                }
-            })
-            ing.nutrients = facts
-
             newList.push(ing)
             return newList
         })
@@ -87,16 +77,19 @@ export const convertToIngredientListAbridged = (responseData: any): Ingredient[]
     return newList
 }
 
-export const convertToIngredientList = (responseData: any): IngredientIDsAndNutrients[] => {
-    const newList: IngredientIDsAndNutrients[] = []
+export const convertToIngredient = (responseData: any): Ingredient => {
+    const newIng: Ingredient = new Ingredient()
 
     // Pull out the Data List from the Response
-    // console.log("responseData: ", responseData)
-    if (responseData["data"]) {
-        // console.log("data: ", responseData["data"])
-        responseData["data"].map((item: any) => {
+    console.log("responseData: ", responseData)
+    const data = responseData["data"]
+    console.log("data: ", responseData["data"])
+    
+    if (data) {
+        
+        data.map((item: any) => {
             const nutrientFacts: NutritionFacts = new NutritionFacts()
-            
+            console.log("item: ", item)
             // Get values
             if (item["foodNutrients"]) {
                 for (const it of item["foodNutrients"]) {
@@ -111,13 +104,14 @@ export const convertToIngredientList = (responseData: any): IngredientIDsAndNutr
                     }
                 }
             }
-            // console.debug("pushing value: ", item.fdcId, nutrientFacts)
-            newList.push({ fdcId: item.fdcId, nutrients: nutrientFacts }) 
+            console.debug("pushing value: ", item.fdcId, nutrientFacts)
+            // newList.push({ fdcId: item.fdcId, nutrients: nutrientFacts }) 
         })
-        console.debug("NEWLIST: ", newList)
-        return newList
+        console.debug("NEWLIST: ", newIng)
+        
     } else {
         console.error("ERROR: There was an issue with the data: ", responseData)
-        return []
+        // return newIng
     }
+    return newIng
 }

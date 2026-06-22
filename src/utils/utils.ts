@@ -1,14 +1,25 @@
 // import { Ingredient } from "@/models/recipeModels"
 
+
+export enum CONVERSTION_TYPES {
+    OTHER = "OTHER",
+    WEIGHT = "WEIGHT",
+    VOLUME = "VOLUME"
+}
+
 export const ingredientTypeOptions = [
-    { label: "Other (cloves, box, item)", value: 0 },
-    { label: "weight(oz, lb, grams)", value: 1 },
-    { label: "volume(tsp, tbsp, cup)", value: 2 }
+    { label: "Other (cloves, box, item)", value: CONVERSTION_TYPES.OTHER },
+    { label: "weight(oz, lb, grams)", value: CONVERSTION_TYPES.WEIGHT },
+    { label: "volume(tsp, tbsp, cup)", value: CONVERSTION_TYPES.VOLUME }
 ]
 
 export type SectionNameUpdate = {
     name: string
     index: number
+}
+
+export function roundNut(value: number): number {
+    return Math.round(value)
 }
 
 // export type MicronutrientDisplay = {

@@ -1,21 +1,37 @@
 @import "tailwindcss";
 
 @theme {
-  --color-thymeBackground: #d8eeda; /* Leaf Green */
-  --color-blackSoft: #808080; /* Gray */
+    /* Chrome — dark slate sidebar */
+    --color-chrome:               oklch(0.16  0.08   220);   /* top nav */
+    --color-sidebar:              oklch(0.22  0.06   210);   /* left sidebar */
+    --color-nav-hover:            oklch(0.30  0.05   205);   /* active nav item */
+    --color-brand-mid:            oklch(0.56  0.1126 158);   /* save buttons, links */
+    --color-brand-soft:           oklch(0.76  0.0918 155);   /* toggles, checkboxes */
+    --color-brand-softest:        oklch(0.9382 0.0567 155);   /* toggles, checkboxes */
 
-  --color-thymeNav: #49c846;  /* Green */ 
-  --color-thymeCard: #edf7ee; /* Seafoam */ 
-  --color-thymeButton: #5EA666; /* grass */
-  --color-thymeButtonHover: #45964E; /* grass */
-  --color-thymeProgress: #49c846; /* Deep Green */ 
-  --color-thymeProgressBackground: #bbedba; /* Pale Green */ 
-  --color-thymeNegative: oklch(0.5929 0.185 24.78); /*#d64242 */
-  --color-thymeNegativeHover: oklch(0.6335 0.185 24.78); /*#d64242 */
-  --color-thymeBorder: #2b7469;
-  --color-thymeRoot: #DE7840; /* brown */
-  --color-navActiveHighlight: #9e2e2e; /* Red */ 
-  --color-navHighlight: 	#6b2e2e; /* Wine */ 
+    /* Surfaces */    
+    --color-surface-page:         oklch(0.97  0.006  145);   /* main content area */
+    --color-surface-card:         oklch(0.94  0.008  145);   /* form panels, cards */
+    --color-surface-input:        oklch(0.90  0.010  145);   /* text input bg */
+    --color-border:               oklch(0.82  0.014  145);   /* standard borders */
+    --color-border-strong:        oklch(0.72  0.018  145);   /* focused input ring */
+
+    /* Status — publish workflow */
+    --color-status-published:     oklch(0.60  0.1326 145.91); /* live */
+    --color-status-draft:         oklch(0.72  0.12    63.53); /* unsaved/draft */
+    --color-status-draft-hover:   oklch(0.7559 0.1307 63.53);
+    --color-status-error:         oklch(0.55  0.15    29);    /* errors */
+    --color-status-error-light:   oklch(0.632 0.1628 29);    /* validation errors */
+    --color-status-archived:      oklch(0.52  0.0741 181.65); /* inactive */
+
+    /* Typography */    
+    --color-text-primary:         oklch(0.14  0.014  220);
+    --color-text-secondary:       oklch(0.36  0.016  210);
+    --color-text-muted:           oklch(0.56  0.012  200);
+    --color-text-on-dark:         oklch(0.96  0.012  210);   /* text on navbar */
+
+    --color-table-row-even:  oklch(0.97  0.006  145);   /* same as surface-page — effectively invisible */
+    --color-table-row-odd:   oklch(0.925 0.009  145);   /* one step between surface-page and surface-card */
 }
 
 .scrollbar-hide {

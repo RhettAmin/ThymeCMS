@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Ingredient } from '@/models/recipeModels'
 import axios from 'axios'
-import { convertToIngredientList, convertToIngredientListAbridged, 
-    IngredientIDsAndNutrients, nutrientCodes, NutrientCodeType 
+import { convertToIngredient, convertToIngredientListAbridged, 
+    nutrientCodes, NutrientCodeType 
 } from './utils'
 
 // Move to .env file
@@ -45,13 +45,43 @@ const listFoodByNameAbridged = async (foodname: string, pageNumber: number | nul
     })
 }
 
-const getNutritionForIngredientList = async (usdaFDCIDS: string[]) => {
-    return await new Promise<IngredientIDsAndNutrients[]>( (resolve, reject) => {
+// const getNutritionForIngredientList = async (usdaFDCIDS: string[]) => {
+//     return await new Promise<IngredientIDsAndNutrients[]>( (resolve, reject) => {
+//         const start = new Date().getTime()
+//         console.debug("getNutritionForIngredientList INPUT: ", usdaFDCIDS)
+//         const requestBody = {
+//             api_key: API_KEY,
+//             fdcIds: usdaFDCIDS.join(",").trim(),
+//             format: "full",
+//             nutrients: nutrientCodes.map((nutrient: NutrientCodeType) => nutrient.nutrientNumber).join(",").trim() ,
+//         }
+//         console.debug("REQUEST BODY: ", requestBody)
+        
+//         usdaAxios.get('/foods', {
+//             params: requestBody
+//         })
+//         .then(response => {
+//             console.debug('SUCCESS: listFoodByNameAbridged took', (new Date().getTime() - start), '')
+//             console.debug(response)
+//             const ingredientList: IngredientIDsAndNutrients[] = convertToIngredientList(response)
+            
+//             resolve(ingredientList)   
+//         })
+//         .catch(error => {
+//             console.error('ERROR: listFoodByNameAbridged took', (new Date().getTime() - start))
+//             console.error(error)
+//             reject(error)
+//         }) 
+//     })
+// }
+
+const getNutritionForIngredient = async (fdcID: number) => {
+    return await new Promise<Ingredient>( (resolve, reject) => {
         const start = new Date().getTime()
-        console.debug("getNutritionForIngredientList INPUT: ", usdaFDCIDS)
+        console.debug("getNutritionForIngredientList INPUT: ", fdcID)
         const requestBody = {
             api_key: API_KEY,
-            fdcIds: usdaFDCIDS.join(",").trim(),
+            fdcIds: fdcID,
             format: "full",
             nutrients: nutrientCodes.map((nutrient: NutrientCodeType) => nutrient.nutrientNumber).join(",").trim() ,
         }
@@ -63,9 +93,9 @@ const getNutritionForIngredientList = async (usdaFDCIDS: string[]) => {
         .then(response => {
             console.debug('SUCCESS: listFoodByNameAbridged took', (new Date().getTime() - start), '')
             console.debug(response)
-            const ingredientList: IngredientIDsAndNutrients[] = convertToIngredientList(response)
-            
-            resolve(ingredientList)   
+            const ingredient: Ingredient = convertToIngredient(response)
+            console.log("ingredient: ", ingredient)
+            resolve(ingredient)   
         })
         .catch(error => {
             console.error('ERROR: listFoodByNameAbridged took', (new Date().getTime() - start))
@@ -74,13 +104,12 @@ const getNutritionForIngredientList = async (usdaFDCIDS: string[]) => {
         }) 
     })
 }
-
 // Helper Functions =================================================================================================
 
 
 
 const USDAAPI = {
-    listFoodByNameAbridged, getNutritionForIngredientList
+    listFoodByNameAbridged, getNutritionForIngredient
 }
 
 export default USDAAPI

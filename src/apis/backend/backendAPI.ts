@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { RecipeModel } from '../../models/recipeModels'
-import { RecipeBaseDTO, RecipeDTO } from '../../models/recipeDB'
-import { convertRecipeDTOToRecipe, convertRecipeToRecipeBaseDTO, convertRecipeToRecipeDTO, DoesRecipeExistOuput } from './utils'
+import { IngredientSectionDTO, RecipeBaseDTO, RecipeDTO } from '../../models/recipeDB'
+import { convertRecipeDTOToRecipe, convertRecipeToRecipeBaseDTO, convertRecipeToRecipeDTO, convertRecipeToRecipeIngredientDTO, DoesRecipeExistOuput } from './utils'
 
 export const thymeAxios = axios.create({
     baseURL: import.meta.env.VITE_BACKEND_URL,
@@ -128,47 +128,18 @@ const postRecipe = async (recipe: RecipeModel) => {
     })
 }
 
-// const updateRecipe = async (recipe: RecipeModel) => {
-//     return await new Promise<void>( (resolve, reject) => {
-//         console.log("recipe uploading:", recipe)
-
-//         let postingRecipe: RecipeDTO | undefined = undefined
-//         // convertRecipeToRecipeDTO(recipe).then((response) => {
-//         //     postingRecipe = response
-//         //     console.log("Sending Recipe: ", postingRecipe)
-//         //     if (postingRecipe) {
-//         //         thymeAxios.patch(
-//         //             '/recipes', 
-//         //             postingRecipe
-//         //         )
-//         //         .then(response => {
-//         //             console.log(response)
-//         //             resolve()
-//         //         })
-//         //         .catch(error => {
-//         //             // your action on error success
-//         //             console.error(error)
-//         //         })
-//         //     }
-//         // }).catch((error) => {
-//         //     console.log(error)
-//         //     reject(error)
-//         // })
-//     })
-// }
-
 const updateRecipeBase = async (recipe: RecipeModel) => {
     return await new Promise<void>( (resolve, reject) => {
-        // console.log("recipe uploading:", recipe)
+        console.log("recipe uploading:", recipe)
 
-        let postingRecipe: RecipeBaseDTO | undefined = undefined
-        convertRecipeToRecipeBaseDTO(recipe).then((response) => {
-            postingRecipe = response
-            // console.log("Sending Recipe: ", postingRecipe)
-            if (postingRecipe) {
+        const convertedRecipeBase: RecipeBaseDTO = convertRecipeToRecipeBaseDTO(recipe)
+        
+        try {
+            console.log("Sending Recipe: ", convertedRecipeBase)
+            if (convertedRecipeBase) {
                 thymeAxios.put(
                     '/recipes/base', 
-                    postingRecipe
+                    convertedRecipeBase
                 )
                 .then(response => {
                     console.log(response)
@@ -179,18 +150,53 @@ const updateRecipeBase = async (recipe: RecipeModel) => {
                     console.error(error)
                 })
             }
-        }).catch((error) => {
-            console.log(error)
-            reject(error)
-        })
+        } catch (err) {
+            console.error(err)
+            reject(err)
+        }
+    })
+}
+
+const updateRecipeIngredients = async (recipe: RecipeModel) => {
+    return await new Promise<void>( (resolve, reject) => {
+        console.log("recipe uploading:", recipe)
+
+        const convertedRecipeIngredients: IngredientSectionDTO[] = convertRecipeToRecipeIngredientDTO(recipe)
+
+        const requestBody = {
+            "recipe_id": recipe.recipeId,
+            "ingredient_sections": convertedRecipeIngredients
+        }
+        try {
+            console.log("Sending IngredientList: ", requestBody)
+            if (convertedRecipeIngredients.length > 0) {
+                thymeAxios.put(
+                    '/recipes/ingredient_sections',
+                    requestBody
+                )
+                .then(response => {
+                    console.log(response)
+                    resolve()
+                })
+                .catch(error => {
+                    // your action on error success
+                    console.error(error)
+                })
+            }
+            else {
+                console.error("List to update is empty")
+                reject("List to update is empty")
+            }
+        } catch (err) {
+            console.error(err)
+            reject(err)
+        }
     })
 }
 
 
-
-
 const BackendAPI = {
-    doesRecipeExist, postRecipe, getRecipe, getRecipes, updateRecipeBase, getHashedName
+    doesRecipeExist, postRecipe, getRecipe, getRecipes, updateRecipeBase, getHashedName, updateRecipeIngredients
 }
 
 export default BackendAPI

@@ -5,17 +5,17 @@ const Navigation = () => {
     const location = useLocation()
 
     return (
-        <div className="flex flex-row w-full items-center text-center bg-thymeNav">
-            <h1 className="text-3xl font-bold ml-12">Thyme CMS</h1>
+        <div className="flex flex-row w-full h-full text-text-on-dark items-center text-center bg-sidebar">
+            <h1 className="text-3xl font-bold  ml-12">Thyme CMS</h1>
             <nav className="flex flex-row items-center text-center ml-12">
                 <Link 
-                    className={`w-44 font-bold py-4 ${ location.pathname === '/' ? 'bg-navActiveHighlight' : ''} `} 
+                    className={`w-44 font-bold py-4 ${ location.pathname === '/' ? 'bg-nav-hover' : ''} `} 
                     to="/"
                 >
                     View Recipes
                 </Link>
                 <Link 
-                    className={`w-44 font-bold py-4 ${ location.pathname === '/recipeEditor' ? 'bg-navActiveHighlight' : ''} `} 
+                    className={`w-44 font-bold py-4 ${ location.pathname === '/recipeEditor' ? 'bg-nav-hover' : ''} `} 
                     to="/recipeEditor"
                 >
                     Add Recipes
